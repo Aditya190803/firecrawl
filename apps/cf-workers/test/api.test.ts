@@ -333,6 +333,11 @@ describe("public", () => {
     // the em dash is banned in site copy; it is the tell we keep out of the UI
     expect(html).not.toContain("—");
 
+    // .ph is the Phosphor icon font selector: never reuse it as a layout class,
+    // it renders the element's text in the icon font
+    expect(html).not.toContain('class="ph"><');
+    expect(html).toContain(".panel .phd{");
+
     const icon = readFileSync(new URL("../public/favicon.svg", import.meta.url), "utf8");
     expect(icon).toContain("<svg");
     expect(icon).toContain('viewBox="0 0 32 32"');

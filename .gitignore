@@ -65,3 +65,7 @@ apps/api/src/lib/scrape-interact/*.md
 
 # stray test runner logs
 vitest.out
+apps/cf-workers/node_modules/
+apps/cf-workers/package-lock.json
+apps/cf-workers/.wrangler/
+apps/cf-workers/.dev.vars

@@ -3,425 +3,1149 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Firecrawl Console</title>
-<meta name="description" content="Firecrawl Console: API keys, usage, invites, and a live tester for your scrape API." />
+<title>Firecrawl on Cloudflare Workers</title>
+<meta name="description" content="A Firecrawl-compatible scrape API running on Cloudflare Workers. Scrape, crawl, map, search, extract, and summarize any site from one endpoint." />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#fbfaf9" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0c0b0a" media="(prefers-color-scheme: dark)" />
+<meta property="og:title" content="Firecrawl on Cloudflare Workers" />
+<meta property="og:description" content="Scrape, crawl, map, search, extract, and summarize any site from one endpoint. Docs and playground are open, no account needed." />
+<meta property="og:type" content="website" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" />
 <style>
+/* Shape system: panels 14px, controls 10px, pills round. One accent: ember orange.
+   Status colors (ok / bad / warn) carry semantic state only, never decoration. */
 :root{
-  --bg: oklch(0.96 0.01 240);
-  --bg2: oklch(0.935 0.012 240);
-  --panel: oklch(0.99 0.004 240);
-  --ink: oklch(0.27 0.028 250);
-  --muted: oklch(0.5 0.02 250);
-  --line: oklch(0.88 0.012 240);
-  --ember: oklch(0.56 0.17 38);
-  --ember-ink: oklch(0.99 0.01 80);
-  --ok: oklch(0.5 0.12 155);
-  --bad: oklch(0.52 0.16 25);
-  --warn: oklch(0.62 0.13 75);
-  --radius: 10px;
-  --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
-  --mono: "Cascadia Mono", "SF Mono", ui-monospace, Menlo, monospace;
-  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --bg:#fbfaf9; --bg-soft:#f4f2ef; --panel:#ffffff; --panel-2:#faf9f7;
+  --ink:#171310; --ink-2:#6d655c; --ink-3:#968d83;
+  --line:#e8e3dc; --line-2:#d9d2c9;
+  --accent:#c9400a; --accent-ink:#ffffff; --accent-soft:#fdeee6; --accent-line:#f0b79a;
+  --ok:#16794e; --ok-soft:#e7f4ed; --bad:#c22d1c; --bad-soft:#fdecea; --warn:#8f5c06; --warn-soft:#fbf1dc;
+  --shadow:0 1px 2px rgba(23,19,16,.05), 0 10px 28px -16px rgba(23,19,16,.22);
+  --glow:radial-gradient(58% 70% at 78% 6%, rgba(201,64,10,.13), transparent 70%);
+  --r-panel:14px; --r-ctl:10px;
+  --sans:"Geist","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"Geist Mono","Cascadia Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --head:60px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c0b0a; --bg-soft:#121110; --panel:#171514; --panel-2:#1c1a18;
+    --ink:#f6f3ef; --ink-2:#a49b91; --ink-3:#7d746a;
+    --line:#282523; --line-2:#36312d;
+    --accent:#ff7a34; --accent-ink:#1a0c04; --accent-soft:#2a1810; --accent-line:#4d2d18;
+    --ok:#3ecf8e; --ok-soft:#10231b; --bad:#ff6f61; --bad-soft:#2a1513; --warn:#e6b45c; --warn-soft:#2a2011;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.9);
+    --glow:radial-gradient(58% 70% at 78% 6%, rgba(255,122,52,.16), transparent 70%);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c0b0a; --bg-soft:#121110; --panel:#171514; --panel-2:#1c1a18;
+  --ink:#f6f3ef; --ink-2:#a49b91; --ink-3:#7d746a;
+  --line:#282523; --line-2:#36312d;
+  --accent:#ff7a34; --accent-ink:#1a0c04; --accent-soft:#2a1810; --accent-line:#4d2d18;
+  --ok:#3ecf8e; --ok-soft:#10231b; --bad:#ff6f61; --bad-soft:#2a1513; --warn:#e6b45c; --warn-soft:#2a2011;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.9);
+  --glow:radial-gradient(58% 70% at 78% 6%, rgba(255,122,52,.16), transparent 70%);
 }
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans)}
-a{color:var(--ember)}
-button,input,textarea,select{font:inherit}
-:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
-.mark{width:28px;height:28px;border-radius:8px;background:#24303a;display:grid;place-items:center;flex-shrink:0}
-.mark svg{width:18px;height:18px;display:block}
-.wordmark{display:flex;align-items:baseline;gap:8px}
-.wordmark b{font-size:16px;letter-spacing:-.02em}
-.wordmark span{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
-.app{display:grid;grid-template-columns:220px 1fr;min-height:100vh}
-.rail{background:var(--bg2);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:18px}
-.rail nav{display:flex;flex-direction:column;gap:4px}
-.rail a.nl{color:var(--muted);text-decoration:none;padding:9px 12px;border-radius:8px;font-weight:600;font-size:14px}
-.rail a.nl:hover{color:var(--ink);background:var(--panel)}
-.rail a.nl.active{background:var(--panel);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
-.rail .foot{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding:8px 4px 4px}
-.rail .foot .em{font-size:12px;color:var(--muted);word-break:break-all}
-.stage{padding:28px 32px 64px;max-width:1080px}
-h1{font-size:26px;letter-spacing:-.03em;margin:0 0 4px;font-weight:700}
-.sub{color:var(--muted);margin:0 0 22px}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px}
-.card h2{margin:0 0 4px;font-size:16px}
-.stat .num{font-size:28px;font-weight:700;letter-spacing:-.03em}
-.stat .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:650}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;font-weight:650}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3{margin:0;letter-spacing:-.025em}
+p{margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.mono,code,pre{font-family:var(--mono)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- brand ---------- */
+.brand{display:flex;align-items:center;gap:10px;min-width:0;color:var(--ink)}
+.brand:hover{text-decoration:none}
+.brand .glyph{width:28px;height:28px;border-radius:8px;display:block;flex-shrink:0}
+.brand .name{font-weight:600;font-size:15px;letter-spacing:-.02em;white-space:nowrap}
+.brand .name span{color:var(--ink-3);font-weight:500}
+
+/* ---------- marketing nav ---------- */
+.nav{position:sticky;top:0;z-index:30;height:64px;display:flex;align-items:center;
+  background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:22px;width:100%}
+.nav .links{display:flex;align-items:center;gap:20px;margin-left:12px}
+.nav .links a{color:var(--ink-2);font-size:14px;font-weight:500}
+.nav .links a:hover{color:var(--ink);text-decoration:none}
+.nav .links a.here{color:var(--ink)}
+.nav .right{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+/* ---------- buttons and inputs ---------- */
+.btn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-weight:500;font-size:14px;cursor:pointer;
+  white-space:nowrap;border:1px solid var(--line-2);background:var(--panel);color:var(--ink);border-radius:var(--r-ctl);
+  padding:9px 14px;transition:background .15s var(--ease),border-color .15s var(--ease),transform .08s var(--ease)}
+.btn i{font-size:16px}
+.btn:hover{background:var(--bg-soft);text-decoration:none}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.55;cursor:not-allowed;transform:none}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{background:color-mix(in srgb,var(--accent) 88%,#000)}
+.btn.quiet{background:transparent;border-color:transparent;color:var(--ink-2)}
+.btn.quiet:hover{background:var(--bg-soft);color:var(--ink)}
+.btn.danger{background:transparent;border-color:var(--line-2);color:var(--bad)}
+.btn.danger:hover{background:var(--bad-soft)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn.lg{padding:12px 20px;font-size:15px}
+.btn.icon{padding:8px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label,.field .flabel,.flabel{font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.field .hint{font-size:12px;color:var(--ink-3)}
 input[type=text],input[type=password],input[type=email],input[type=number],textarea,select{
-width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);
-border-radius:8px;padding:9px 11px}
-textarea{min-height:80px;resize:vertical;font-family:var(--mono);font-size:13px}
-button{cursor:pointer;border:0;border-radius:8px;padding:9px 14px;font-weight:650;background:var(--ember);color:var(--ember-ink)}
-button:hover{filter:brightness(1.05)}
-button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-button.danger{background:transparent;color:var(--bad);border:1px solid color-mix(in oklch, var(--bad) 35%, var(--line))}
-button.small{padding:6px 10px;font-size:13px}
-button:disabled{opacity:.55;cursor:wait}
-.row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;color:var(--muted);font-weight:650;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:8px 8px;border-bottom:1px solid var(--line)}
-td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
-tr:last-child td{border-bottom:0}
-code,.mono{font-family:var(--mono);font-size:12.5px}
-pre.out{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:12px;font-size:12.5px;overflow:auto;max-height:440px;white-space:pre-wrap;word-break:break-word;margin:12px 0 0;font-family:var(--mono)}
-.meta{font-size:12px;color:var(--muted);margin-top:8px}
-.meta b.ok{color:var(--ok)}.meta b.bad{color:var(--bad)}
-.poll{font-size:12px;color:var(--warn)}
-.bars{display:flex;align-items:flex-end;gap:4px;height:110px;padding-top:8px}
-.bar{flex:1;background:var(--ember);border-radius:3px 3px 0 0;min-height:3px;opacity:.85}
-.keybanner{background:color-mix(in oklch, var(--ok) 12%, var(--panel));border:1px solid color-mix(in oklch, var(--ok) 35%, var(--line));border-radius:var(--radius);padding:14px 16px;margin-bottom:16px}
-.keybanner code{font-size:14px;color:var(--ok);word-break:break-all}
-.auth{min-height:100vh;display:grid;place-items:center;padding:32px}
-.authbox{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:28px 26px}
-.authbox .brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
-.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 14px}
-.tab{background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:7px 14px;font-weight:650;font-size:13px;cursor:pointer}
-.tab.active{background:var(--ink);color:var(--panel);border-color:var(--ink)}
-.docgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
-.endpoint{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--panel)}
-.endpoint .m{font-weight:800;font-size:11px;padding:2px 7px;border-radius:6px;margin-right:8px}
-.m.POST{background:color-mix(in oklch, var(--ok) 18%, var(--panel));color:var(--ok)}
-.m.GET{background:color-mix(in oklch, var(--ember) 12%, var(--panel));color:var(--ember)}
-.m.DELETE{background:color-mix(in oklch, var(--bad) 16%, var(--panel));color:var(--bad)}
-.m.PATCH{background:color-mix(in oklch, var(--warn) 18%, var(--panel));color:oklch(0.45 0.1 75)}
-.status-ok{color:var(--ok);font-weight:700}.status-bad{color:var(--bad);font-weight:700}.status-warn{color:var(--warn);font-weight:700}
-.err{background:color-mix(in oklch, var(--bad) 12%, var(--panel));border:1px solid color-mix(in oklch, var(--bad) 30%, var(--line));color:var(--bad);border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px}
-.note{background:var(--bg2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px}
-.desc{color:var(--muted);font-size:13px;margin:0 0 12px}
-.pill{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:2px 8px;color:var(--muted);font-weight:650}
-@media(max-width:900px){
-  .app{grid-template-columns:1fr}
-  .rail{flex-direction:row;flex-wrap:wrap;align-items:center;border-right:0;border-bottom:1px solid var(--line);gap:8px}
-  .rail nav{flex-direction:row;flex-wrap:wrap}
-  .rail .foot{margin:0 0 0 auto;flex-direction:row;align-items:center}
-  .cards,.grid2{grid-template-columns:1fr 1fr}
-  .stage{padding:20px 16px 48px}
+  width:100%;font:inherit;color:var(--ink);background:var(--panel-2);border:1px solid var(--line-2);
+  border-radius:var(--r-ctl);padding:9px 12px;transition:border-color .15s var(--ease),box-shadow .15s var(--ease)}
+input::placeholder,textarea::placeholder{color:var(--ink-3)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea{min-height:84px;resize:vertical;font-family:var(--mono);font-size:13px;line-height:1.5}
+input.tiny{padding:6px 8px;font-size:13px;font-family:var(--mono)}
+
+/* ---------- shared surfaces ---------- */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-panel);box-shadow:var(--shadow)}
+.panel + .panel{margin-top:14px}
+.panel-hd{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.panel-hd h2{font-size:14.5px;font-weight:600}
+.panel-hd .note{margin-left:auto;color:var(--ink-3);font-size:12.5px}
+.panel-bd{padding:18px}
+pre.out{margin:0;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-ctl);padding:14px;
+  font-size:12.5px;line-height:1.6;overflow:auto;max-height:420px;white-space:pre-wrap;word-break:break-word}
+.tok-key{color:var(--accent)}.tok-str{color:var(--ok)}.tok-num{color:var(--warn)}.tok-lit{color:var(--ink-3)}
+.verb{font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 7px;border-radius:6px}
+.verb.POST{color:var(--ok);background:var(--ok-soft)}
+.verb.GET{color:var(--accent);background:var(--accent-soft)}
+.verb.DELETE{color:var(--bad);background:var(--bad-soft)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;border-radius:999px;
+  padding:3px 9px;border:1px solid var(--line-2);color:var(--ink-2);background:var(--panel-2)}
+.chip.ok{color:var(--ok);background:var(--ok-soft);border-color:transparent}
+.chip.bad{color:var(--bad);background:var(--bad-soft);border-color:transparent}
+.chip.warn{color:var(--warn);background:var(--warn-soft);border-color:transparent}
+.chip.accent{color:var(--accent);background:var(--accent-soft);border-color:transparent}
+.callout{display:flex;gap:10px;border-radius:var(--r-ctl);padding:12px 14px;font-size:13.5px;margin-bottom:14px;line-height:1.5}
+.callout i{font-size:17px;flex-shrink:0;margin-top:1px}
+.callout.err{background:var(--bad-soft);color:var(--bad)}
+.callout.info{background:var(--panel-2);color:var(--ink-2);border:1px solid var(--line)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ink-3);flex-shrink:0}
+.dot.up{background:var(--ok)}.dot.down{background:var(--bad)}
+
+/* ---------- landing ---------- */
+.hero{background-image:var(--glow);padding:72px 0 64px}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);gap:52px;align-items:center}
+.hero h1{font-size:clamp(34px,4.4vw,56px);line-height:1.05;font-weight:600;max-width:15ch}
+.hero .lede{margin-top:18px;color:var(--ink-2);font-size:17px;line-height:1.55;max-width:46ch}
+.hero .cta{margin-top:28px;display:flex;gap:10px;flex-wrap:wrap}
+.widget{border:1px solid var(--line);border-radius:var(--r-panel);background:var(--panel);box-shadow:var(--shadow);overflow:hidden}
+.widget .bar{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+.widget .bar .p{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
+.widget .bar .live{margin-left:auto;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.widget .bd{padding:14px}
+.widget .go{display:flex;gap:8px}
+.widget .go input{flex:1}
+.widget pre.out{margin-top:12px;max-height:232px;font-size:12px}
+.section{padding:72px 0;border-top:1px solid var(--line)}
+.section h2{font-size:clamp(25px,2.6vw,33px);font-weight:600;max-width:20ch}
+.section .sub{margin-top:12px;color:var(--ink-2);font-size:16px;max-width:62ch}
+.bento{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin-top:34px}
+.tile{border:1px solid var(--line);border-radius:var(--r-panel);padding:20px;background:var(--panel);
+  display:flex;flex-direction:column;gap:8px;transition:transform .2s var(--ease),border-color .2s var(--ease)}
+.tile:hover{transform:translateY(-2px);border-color:var(--accent-line)}
+.tile i{font-size:22px;color:var(--accent)}
+.tile h3{font-size:16px;font-weight:600}
+.tile p{color:var(--ink-2);font-size:13.5px}
+.tile code{font-size:12px;color:var(--ink-3)}
+.tile.wide{grid-column:span 3}
+.tile.third{grid-column:span 2}
+.tile.tint{background:linear-gradient(150deg,var(--accent-soft),var(--panel) 72%);border-color:var(--accent-line)}
+.tile.ink{background:linear-gradient(150deg,var(--bg-soft),var(--panel) 80%)}
+.tile pre{margin:6px 0 0;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-ctl);
+  padding:10px 12px;font-size:11.5px;overflow:auto;line-height:1.5}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{font:inherit;font-size:13px;font-weight:500;cursor:pointer;border-radius:999px;padding:6px 13px;
+  border:1px solid var(--line-2);background:var(--panel);color:var(--ink-2);transition:all .15s var(--ease)}
+.tabs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.facts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:48px;align-items:start}
+.factgroup + .factgroup{margin-top:26px;border-top:1px solid var(--line);padding-top:26px}
+.factgroup h3{font-size:13px;font-weight:600;color:var(--ink-3);margin-bottom:12px}
+.factgroup dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 20px}
+.factgroup dt{font-family:var(--mono);font-size:13px;color:var(--ink)}
+.factgroup dd{margin:0;color:var(--ink-2);font-size:13.5px}
+.band{margin:0 0 72px;padding:44px 36px;border:1px solid var(--accent-line);border-radius:var(--r-panel);
+  background:linear-gradient(135deg,var(--accent-soft),var(--panel) 75%);display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+.band h2{font-size:26px;font-weight:600;max-width:22ch}
+.band p{color:var(--ink-2);margin-top:8px;max-width:54ch}
+.band .btn{margin-left:auto}
+footer{border-top:1px solid var(--line);background:var(--bg-soft);padding:40px 0}
+footer .cols{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr));gap:28px}
+footer h4{font-size:12px;font-weight:600;color:var(--ink-3);margin:0 0 10px}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+footer a,footer li{font-size:13.5px;color:var(--ink-2)}
+footer .about{color:var(--ink-2);font-size:13.5px;max-width:34ch;margin-top:12px}
+
+/* ---------- docs ---------- */
+.docs{display:grid;grid-template-columns:212px minmax(0,1fr);gap:44px;padding:36px 0 80px}
+.docnav{position:sticky;top:132px;align-self:start;display:flex;flex-direction:column;gap:2px;
+  max-height:calc(100dvh - 160px);overflow:auto}
+.docnav b{font-size:12px;color:var(--ink-3);font-weight:600;margin:14px 0 6px}
+.docnav b:first-child{margin-top:0}
+.docnav a{color:var(--ink-2);font-size:13.5px;padding:6px 10px;border-radius:8px}
+.docnav a:hover{background:var(--bg-soft);color:var(--ink);text-decoration:none}
+.doc h1{font-size:32px;font-weight:600}
+.doc .lede{margin-top:10px;color:var(--ink-2);font-size:16px;max-width:62ch}
+.ep{padding-top:44px;margin-top:44px;border-top:1px solid var(--line)}
+.ep h2{font-size:22px;font-weight:600}
+.ep .sig{display:flex;align-items:center;gap:8px;margin-top:10px;font-family:var(--mono);font-size:13.5px;color:var(--ink-2)}
+.ep .desc{margin-top:12px;color:var(--ink-2);max-width:64ch}
+.ep .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:18px;align-items:start}
+.params{margin-top:18px;border:1px solid var(--line);border-radius:var(--r-panel);overflow:hidden}
+.params .p{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:16px;padding:11px 16px;font-size:13.5px}
+.params .p + .p{border-top:1px solid var(--line)}
+.params .n{font-family:var(--mono);color:var(--ink)}
+.params .n em{font-style:normal;color:var(--ink-3);font-size:12px;display:block;margin-top:2px}
+.params .d{color:var(--ink-2)}
+.try{border:1px solid var(--line);border-radius:var(--r-panel);background:var(--panel-2);padding:16px;margin-top:18px}
+.try .hd{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.try .hd h3{font-size:13.5px;font-weight:600}
+.try .hd .note{margin-left:auto;font-size:12px;color:var(--ink-3)}
+.keybar{position:sticky;top:64px;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 0}
+.keybar .wrap{display:flex;align-items:center;gap:12px}
+.keybar label{font-size:12.5px;color:var(--ink-2);font-weight:500;white-space:nowrap}
+.keybar input{max-width:360px;font-family:var(--mono);font-size:13px}
+.keybar .state{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-3);font-family:var(--mono)}
+
+/* ---------- console ---------- */
+.top{position:sticky;top:0;z-index:30;height:var(--head);display:flex;align-items:center;gap:16px;padding:0 20px;
+  background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top .brand{width:220px}
+.top .right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.host{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);
+  border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 12px;max-width:340px}
+.host b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr)}
+.side{position:sticky;top:var(--head);height:calc(100dvh - var(--head));border-right:1px solid var(--line);
+  padding:18px 14px;display:flex;flex-direction:column;gap:2px;background:var(--bg-soft)}
+.side a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-ctl);color:var(--ink-2);
+  font-weight:500;font-size:14px;transition:background .15s var(--ease),color .15s var(--ease)}
+.side a i{font-size:17px}
+.side a:hover{background:var(--panel);color:var(--ink);text-decoration:none}
+.side a[aria-current="page"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.side .who{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.side .who .mail{font-size:12.5px;color:var(--ink-2);word-break:break-all;line-height:1.35}
+.main{padding:30px 34px 80px;max-width:1180px;min-width:0}
+.head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.head h1{font-size:25px;font-weight:600}
+.head p{margin:4px 0 0;color:var(--ink-2);font-size:14px}
+.head .acts{margin-left:auto;display:flex;gap:8px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-panel);padding:16px 18px;box-shadow:var(--shadow)}
+.stat .k{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2);font-weight:500}
+.stat .k i{font-size:14px;color:var(--ink-3)}
+.stat .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:27px;font-weight:600;letter-spacing:-.03em;margin-top:8px}
+.stat .s{font-size:12px;color:var(--ink-3);margin-top:2px}
+.cols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px}
+.cols.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);
+  padding:11px 18px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+td{padding:12px 18px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--panel-2)}
+.sub2{display:block;color:var(--ink-3);font-size:12px;margin-top:2px}
+.reveal-key{background:var(--panel);border:1px solid var(--accent-line);border-radius:var(--r-panel);padding:16px 18px;margin-bottom:14px}
+.reveal-key b{display:block;font-size:13.5px;margin-bottom:8px}
+.reveal-key code{display:block;font-size:13.5px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-ctl);
+  padding:10px 12px;word-break:break-all;margin-bottom:10px}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:38px 20px;color:var(--ink-2)}
+.empty i{font-size:26px;color:var(--ink-3)}
+.empty b{font-weight:600;color:var(--ink);font-size:14px}
+.empty p{font-size:13px;max-width:44ch}
+.sk{background:linear-gradient(90deg,var(--panel-2),var(--bg-soft),var(--panel-2));background-size:200% 100%;border-radius:8px;height:14px}
+.chart{width:100%;height:150px;display:block}
+.chart .ln{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .hit:hover{fill:var(--accent-soft)}
+.legend{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin-top:6px}
+
+/* ---------- auth ---------- */
+.auth{min-height:calc(100dvh - 64px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}
+.auth .pitch{background:var(--bg-soft);border-right:1px solid var(--line);padding:56px 48px;display:flex;
+  flex-direction:column;gap:22px;justify-content:center}
+.auth .pitch h2{font-size:30px;font-weight:600;line-height:1.15;max-width:16ch}
+.auth .pitch ul{margin:0;padding:0;list-style:none;display:grid;gap:12px}
+.auth .pitch li{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink-2)}
+.auth .pitch li i{color:var(--accent);font-size:18px;margin-top:1px}
+.auth .form{display:grid;place-items:center;padding:40px 24px}
+.auth .form .inner{width:min(380px,100%)}
+.auth .form h1{font-size:24px;font-weight:600;margin-bottom:6px}
+.auth .form .lede{color:var(--ink-2);font-size:14px;margin:0 0 22px}
+
+/* ---------- toast ---------- */
+.toasts{position:fixed;right:18px;bottom:18px;z-index:80;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r-ctl);
+  box-shadow:var(--shadow);padding:11px 14px;font-size:13.5px;max-width:340px}
+.toast i{font-size:17px}
+.toast.ok i{color:var(--ok)}.toast.bad i{color:var(--bad)}
+
+/* ---------- motion: hero entry for hierarchy, scroll reveal for structure ---------- */
+@media (prefers-reduced-motion: no-preference){
+  .rise{animation:rise .55s var(--ease) backwards}
+  .rise.d1{animation-delay:.07s}.rise.d2{animation-delay:.14s}.rise.d3{animation-delay:.21s}
+  [data-reveal]{opacity:0;transform:translateY(16px)}
+  [data-reveal].in{opacity:1;transform:none;transition:opacity .6s var(--ease),transform .6s var(--ease)}
+  .toast{animation:rise .24s var(--ease)}
+  .sk{animation:sh 1.4s linear infinite}
 }
-@media(max-width:560px){.cards,.grid2{grid-template-columns:1fr}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+@keyframes sh{to{background-position:-200% 0}}
+
+@media (max-width:1080px){
+  .hero .wrap{grid-template-columns:minmax(0,1fr);gap:36px}
+  .hero h1{max-width:20ch}
+  .facts{grid-template-columns:minmax(0,1fr);gap:28px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cols,.cols.even,.ep .split{grid-template-columns:minmax(0,1fr)}
+  .tile.wide,.tile.third{grid-column:span 3}
+  .docs{grid-template-columns:minmax(0,1fr);gap:24px}
+  .docnav{position:static;flex-direction:row;flex-wrap:wrap;max-height:none;gap:6px}
+  .docnav b{display:none}
+  .docnav a{border:1px solid var(--line);border-radius:999px}
+  footer .cols{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:760px){
+  .nav .links{display:none}
+  .hero{padding:48px 0 40px}
+  .section{padding:52px 0}
+  .tile,.tile.wide,.tile.third{grid-column:span 6}
+  .band{flex-direction:column;align-items:flex-start;padding:28px 22px}
+  .band .btn{margin-left:0}
+  .layout{grid-template-columns:1fr}
+  .top .brand{width:auto}
+  .host{display:none}
+  .side{position:static;height:auto;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px;gap:6px}
+  .side .who{margin:0 0 0 auto;border-top:0;padding:0;flex-direction:row;align-items:center}
+  .side .who .mail{display:none}
+  .main{padding:22px 16px 64px}
+  .auth{grid-template-columns:1fr}
+  .auth .pitch{display:none}
+  .params .p{grid-template-columns:minmax(0,1fr);gap:4px}
+  .keybar .state{display:none}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
 <div id="root"></div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 <script>
 "use strict";
-const $=s=>document.querySelector(s);
+
+/* ---------------- primitives ---------------- */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-const API=()=> (localStorage.getItem("fc_base")||window.location.origin).replace(/\/$/,"");
+/* Served from the Worker custom domain, so the origin is the API. The same file is
+   mirrored on Cloudflare Pages, where the origin is not the API: fall back to the
+   Worker domain there. The console header can point it anywhere. */
+const WORKER_ORIGIN="https://firecrawl.adityamer.dev";
+const API=()=>(localStorage.getItem("fc_base")
+  ||(/\.pages\.dev$/.test(location.hostname)?WORKER_ORIGIN:window.location.origin)).replace(/\/$/,"");
 const TOKEN=()=>localStorage.getItem("fc_token")||"";
 const ROLE=()=>localStorage.getItem("fc_role")||"";
-const MARK=`<div class="mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#24303a"/><path fill="#d45a2a" d="M16.2 5.2c.4 3.4-1.8 5.2-.4 8.2 1.5 3.2 4.6 4 4.6 7.2 0 4-3.4 7-7.4 7s-7.2-3-7.2-7c0-3.4 2.2-5.2 3.4-7.4C10.8 10.4 12.2 8.4 16.2 5.2Z"/><path fill="#f0c9a8" d="M14.8 18.2c.6 1.4 2.2 2 2.2 3.6 0 1.6-1.4 2.8-3 2.8s-3-1.2-3-2.8c0-1.2.8-2 1.4-2.8.5-.7 1-1.4 2.4-.8Z"/></svg></div>`;
+const EMAIL=()=>localStorage.getItem("fc_email")||"";
+const KEY=()=>localStorage.getItem("fc_lastkey")||"";
+const GLYPH=`<svg class="glyph" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="fcT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a3d"/><stop offset="1" stop-color="#e2430f"/></linearGradient><linearGradient id="fcC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd9a8"/><stop offset="1" stop-color="#ff7a2f"/></linearGradient></defs><rect width="32" height="32" rx="7.5" fill="url(#fcT)"/><path fill="#fff" d="M17.3 3.4c.5 3.1-.6 5.2-2.6 7.2-2.6 2.5-4.8 4.6-4.8 8.1a6.1 6.1 0 0 0 12.2.3c0-2.6-1.1-4.2-2-5.7.9.2 1.7.7 2.3 1.4.3-3.9-1.7-8.2-5.1-11.3Z"/><path fill="url(#fcC)" d="M16.1 16.1c.6 1.7 2.4 2.4 2.4 4.3a2.8 2.8 0 0 1-5.6.1c0-1.4.8-2.2 1.5-3 .6-.7 1.2-1.4 1.7-1.4Z"/></svg>`;
+const brandLink=(sub="")=>`<a class="brand" href="#/">${GLYPH}<div class="name">Firecrawl${sub?` <span>${esc(sub)}</span>`:""}</div></a>`;
+
 const authH=()=>({"content-type":"application/json",...(TOKEN()?{authorization:"Bearer "+TOKEN()}:{})});
 async function api(path,opts={}){
   const r=await fetch(API()+path,{...opts,headers:{...(opts.headers||{}),...authH()}});
-  const j=await r.json().catch(()=>({success:false,error:"bad json"}));
-  if(r.status===401&&path.startsWith("/dashboard/")&&!path.includes("accept-invite")&&!path.includes("login")){logout();location.hash="#/login";}
+  const j=await r.json().catch(()=>({success:false,error:"Response was not JSON."}));
+  if(r.status===401&&path.startsWith("/dashboard/")&&!path.includes("accept-invite")&&!path.includes("login")){
+    logout();location.hash="#/login";
+  }
   return {status:r.status,j};
 }
-function logout(){localStorage.removeItem("fc_token");localStorage.removeItem("fc_email");localStorage.removeItem("fc_role");}
+function logout(){["fc_token","fc_email","fc_role"].forEach(k=>localStorage.removeItem(k));}
 function remember(d){localStorage.setItem("fc_token",d.token);localStorage.setItem("fc_email",d.email);if(d.role)localStorage.setItem("fc_role",d.role);}
-function cp(t,btn){navigator.clipboard.writeText(t).then(()=>{if(btn){const o=btn.textContent;btn.textContent="Copied";setTimeout(()=>btn.textContent=o,1200);}})}
+
+function toast(msg,kind="ok"){
+  const el=document.createElement("div");
+  el.className="toast "+kind;
+  el.innerHTML=`<i class="ph-fill ${kind==="bad"?"ph-warning-circle":"ph-check-circle"}" aria-hidden="true"></i><span>${esc(msg)}</span>`;
+  $("#toasts").appendChild(el);
+  setTimeout(()=>el.remove(),3200);
+}
+function copy(text,btn,label="Copied"){
+  navigator.clipboard.writeText(text).then(()=>{
+    toast(label);
+    if(btn){const o=btn.innerHTML;btn.innerHTML=`<i class="ph ph-check" aria-hidden="true"></i>${label}`;setTimeout(()=>btn.innerHTML=o,1400);}
+  }).catch(()=>toast("Clipboard blocked by the browser.","bad"));
+}
+function hi(value){
+  return esc(JSON.stringify(value,null,2))
+    .replace(/&quot;([^&]*?)&quot;(\s*:)/g,'<span class="tok-key">&quot;$1&quot;</span>$2')
+    .replace(/:\s(&quot;.*?&quot;)/g,': <span class="tok-str">$1</span>')
+    .replace(/:\s(-?\d+\.?\d*)/g,': <span class="tok-num">$1</span>')
+    .replace(/:\s(true|false|null)/g,': <span class="tok-lit">$1</span>');
+}
+const shortDate=s=>esc(String(s||"").slice(0,16).replace("T"," "));
+const skeleton=rows=>`<div class="panel"><div class="panel-bd">${Array.from({length:rows},(_,i)=>
+  `<div class="sk" style="width:${[92,70,84,58][i%4]}%;margin-bottom:12px"></div>`).join("")}</div></div>`;
+
+/* Reveal sections as they enter the viewport: it shows page structure while scrolling.
+   IntersectionObserver, never a scroll listener, and skipped under reduced motion. */
+let revealObserver=null;
+function wireReveal(){
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  revealObserver?.disconnect();
+  revealObserver=new IntersectionObserver((entries,obs)=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");obs.unobserve(e.target);}});
+  },{threshold:.12});
+  $$("[data-reveal]").forEach(el=>revealObserver.observe(el));
+}
+
+/* ---------------- theme ---------------- */
+function theme(){return localStorage.getItem("fc_theme")||"system";}
+function applyTheme(){
+  const t=theme();
+  if(t==="system")document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme",t);
+}
+function cycleTheme(){
+  const order=["system","light","dark"];
+  localStorage.setItem("fc_theme",order[(order.indexOf(theme())+1)%3]);
+  applyTheme();render();toast("Theme: "+theme());
+}
+const themeIcon=()=>({system:"ph-circle-half",light:"ph-sun",dark:"ph-moon"})[theme()];
+const themeBtn=()=>`<button class="btn icon quiet" id="themeBtn" title="Theme: ${theme()}" aria-label="Change theme"><i class="ph ${themeIcon()}" aria-hidden="true"></i></button>`;
+applyTheme();
+
+/* ---------------- endpoint catalog: powers the tiles, the docs, and the playground ---------------- */
+const EPS=[
+  {id:"scrape",group:"Scraping",title:"Scrape a page",method:"POST",path:"/v2/scrape",icon:"ph-file-text",
+   blurb:"Fetch one page and get markdown, HTML, plain text, or its links.",
+   params:[["url","string, required","Absolute URL. A bare host gets https:// added."],
+           ["formats","array","Any of markdown, html, rawHtml, text, links, summary."],
+           ["onlyMainContent","boolean","Strips navigation and footers. On by default."],
+           ["timeout","number","Milliseconds, up to 120000."]],
+   form:[["url","text","https://example.com"],["formats","textarea",'[{"type":"markdown"}]']],
+   example:{url:"https://example.com",formats:[{type:"markdown"}]}},
+  {id:"crawl",group:"Scraping",title:"Crawl a site",method:"POST",path:"/v2/crawl",icon:"ph-tree-structure",async:"crawl",
+   blurb:"Walk a site from one URL and scrape every page it finds. Returns a job to poll.",
+   params:[["url","string, required","Where the crawl starts."],
+           ["limit","number","Maximum pages. Defaults to 100."],
+           ["maxDepth","number","Link depth from the start URL. Defaults to 5."],
+           ["excludePaths","array","Path patterns to skip."]],
+   form:[["url","text","https://example.com"],["limit","number","5"],["maxDepth","number","2"]],
+   example:{url:"https://example.com",limit:20,maxDepth:2}},
+  {id:"batch",group:"Scraping",title:"Batch scrape",method:"POST",path:"/v2/batch/scrape",icon:"ph-stack",async:"batch/scrape",
+   blurb:"Scrape a list of URLs in one job, with the options a single scrape takes.",
+   params:[["urls","array, required","Up to 1000 URLs."],
+           ["formats","array","Applied to every URL in the batch."],
+           ["maxConcurrency","number","Up to 10 pages at a time."]],
+   form:[["urls","textarea","https://example.com\nhttps://example.org"]],
+   example:{urls:["https://example.com","https://example.org"]}},
+  {id:"map",group:"Discovery",title:"Map a site",method:"POST",path:"/v2/map",icon:"ph-sitemap",
+   blurb:"List the URLs of a site from its sitemap and homepage links, without scraping.",
+   params:[["url","string, required","Site to map."],
+           ["limit","number","Maximum URLs returned."],
+           ["search","string","Keep only URLs containing this text."],
+           ["includeSubdomains","boolean","On by default."]],
+   form:[["url","text","https://example.com"],["limit","number","10"]],
+   example:{url:"https://example.com",limit:50}},
+  {id:"search",group:"Discovery",title:"Search the web",method:"POST",path:"/v2/search",icon:"ph-magnifying-glass",
+   blurb:"Run a web search through the configured provider. DuckDuckGo needs no key.",
+   params:[["query","string, required","What to search for."],
+           ["limit","number","Results to return. Defaults to 10."],
+           ["country","string","Two letter country code."],
+           ["scrapeOptions","object","Scrape each result as well."]],
+   form:[["query","text","firecrawl workers"],["limit","number","5"]],
+   example:{query:"firecrawl",limit:5}},
+  {id:"extract",group:"AI",title:"Extract fields",method:"POST",path:"/v2/extract",icon:"ph-brackets-curly",
+   blurb:"Pull structured values out of pages with Workers AI, guided by a prompt.",
+   params:[["urls","array, required","Pages to read. A single url also works."],
+           ["prompt","string","What to pull out of each page."],
+           ["schema","object","JSON shape the answer should follow."]],
+   form:[["urls","textarea","https://example.com"],["prompt","text","What is this page about?"]],
+   example:{urls:["https://example.com"],prompt:"Give the product name and price."}},
+  {id:"summarize",group:"AI",title:"Summarize a page",method:"POST",path:"/v2/summarize",icon:"ph-article",
+   blurb:"Short summary of one page. Falls back to an extractive summary when AI is off.",
+   params:[["url","string, required","Page to summarize."],
+           ["sentences","number","Between 1 and 10. Defaults to 3."]],
+   form:[["url","text","https://example.com"],["sentences","number","3"]],
+   example:{url:"https://example.com",sentences:3}},
+  {id:"status",group:"Jobs",title:"Check a job",method:"GET",path:"/v2/crawl/:jobId",icon:"ph-clock-countdown",
+   blurb:"Status, progress, scraped data, and per-page errors for a crawl or batch job.",
+   params:[["jobId","string, required","Returned by crawl and batch scrape."]],
+   form:[["jobId","text",""]],
+   raw:b=>`/v2/crawl/${b.jobId}`,example:null},
+];
+const EP=id=>EPS.find(e=>e.id===id);
+const buildBody=(spec,read)=>{
+  const o={};
+  spec.form.forEach(([name,kind])=>{
+    const v=read(name);
+    if(name==="formats"){try{o.formats=JSON.parse(v)}catch{o.formats=[{type:"markdown"}]}}
+    else if(name==="urls"){o.urls=v.split("\n").map(s=>s.trim()).filter(Boolean)}
+    else if(kind==="number"){if(v!=="")o[name]=Number(v)}
+    else o[name]=v;
+  });
+  return o;
+};
+const curlFor=(spec,body)=>{
+  const path=spec.raw?spec.raw(body):spec.path;
+  return spec.method==="GET"
+    ? `curl -s ${API()}${path} \\\n  -H "Authorization: Bearer $FIRECRAWL_KEY"`
+    : `curl -s -X ${spec.method} ${API()}${spec.path} \\\n  -H "Authorization: Bearer $FIRECRAWL_KEY" \\\n  -H "content-type: application/json" \\\n  -d '${JSON.stringify(body)}'`;
+};
+
+/* ---------------- routing: landing, docs and login are public ---------------- */
+const CONSOLE_PAGES={
+  "/overview":{title:"Overview",icon:"ph-chart-line-up",view:vOverview},
+  "/keys":{title:"API keys",icon:"ph-key",view:vKeys},
+  "/people":{title:"People",icon:"ph-users-three",view:vPeople,admin:true},
+};
 function parseRoute(){
   const raw=(location.hash||"#/").slice(1);
   const inv=raw.match(/^\/invite\/(.+)$/);
   if(inv)return {name:"/invite",token:decodeURIComponent(inv[1])};
-  if(raw==="/"||raw==="")return {name:TOKEN()?"/overview":"/login"};
-  return {name:raw};
+  const [path,anchor]=raw.split("#");
+  if(path==="/"||path==="")return {name:"/",anchor};
+  return {name:path,anchor};
 }
+const setTitle=t=>document.title=t?t+" · Firecrawl":"Firecrawl on Cloudflare Workers";
 
-function shell(inner){
-  const logged=!!TOKEN();
-  if(!logged)return inner;
-  const h=parseRoute().name;
-  const links=[["#/overview","Overview"],["#/keys","API keys"],...(ROLE()==="admin"?[["#/people","People"]]:[]),["#/tester","Tester"],["#/docs","Docs"]];
-  return `<div class="app">
-    <aside class="rail">
-      <div class="wordmark">${MARK}<div><b>Firecrawl</b><div class="wordmark"><span>Console</span></div></div></div>
-      <nav>${links.map(([p,l])=>`<a class="nl ${h===p.slice(1)?"active":""}" href="${p}">${l}</a>`).join("")}</nav>
-      <div class="foot"><span class="em">${esc(localStorage.getItem("fc_email")||"")}</span><button class="ghost small" onclick="doLogout()">Log out</button></div>
-    </aside>
-    <main class="stage" id="view">${inner}</main>
-  </div>`;
-}
-window.doLogout=async()=>{try{await api("/dashboard/auth/logout",{method:"POST"})}catch{}logout();location.hash="#/login";};
-
+let renderedRoute=null;
 async function render(){
   const r=parseRoute();
-  if(!TOKEN()&&r.name!=="/login"&&r.name!=="/invite"){location.hash="#/login";return;}
-  if(TOKEN()&&r.name==="/login"){location.hash="#/overview";return;}
-  if(r.name==="/login"){$("#root").innerHTML=`<div class="auth" id="view"></div>`;await vLogin($("#view"));return;}
-  if(r.name==="/invite"){$("#root").innerHTML=`<div class="auth" id="view"></div>`;await vInvite($("#view"),r.token);return;}
-  $("#root").innerHTML=shell("<p class='desc'>Loading</p>");
-  const el=$("#view");
-  const fn={"/overview":vOverview,"/keys":vKeys,"/people":vPeople,"/tester":vTester,"/docs":vDocs}[r.name]||vOverview;
-  await fn(el);
+  const isConsole=!!CONSOLE_PAGES[r.name];
+  if(renderedRoute===r.name&&r.anchor){
+    const same=document.getElementById(r.anchor);
+    if(same){same.scrollIntoView();return;}
+  }
+  if(isConsole&&!TOKEN()){location.hash="#/login";return;}
+  if(r.name==="/login"&&TOKEN()){location.hash="#/overview";return;}
+
+  if(r.name==="/"){setTitle("");vLanding();}
+  else if(r.name==="/docs"){setTitle("Docs");vDocs();}
+  else if(r.name==="/login"){setTitle("Sign in");vLogin();}
+  else if(r.name==="/invite"){setTitle("Set your password");vInvite(r.token);}
+  else if(isConsole){
+    const page=CONSOLE_PAGES[r.name];
+    setTitle(page.title+" · Console");
+    $("#root").innerHTML=consoleChrome(skeleton(5));
+    wireConsole();
+    await page.view($("#view"));
+  }
+  else {location.hash="#/";return;}
+
+  renderedRoute=r.name;
+  wireReveal();
+  const target=r.anchor&&document.getElementById(r.anchor);
+  if(target)target.scrollIntoView();
+  else window.scrollTo(0,0);
 }
 window.addEventListener("hashchange",render);
 
-async function vLogin(el){
-  el.innerHTML=`<div class="authbox">
-    <div class="brand">${MARK}<div class="wordmark"><b>Firecrawl</b> <span>Console</span></div></div>
+/* ---------------- public chrome ---------------- */
+function siteNav(current){
+  const right=TOKEN()
+    ? `<a class="btn sm" href="#/overview"><i class="ph ph-gauge" aria-hidden="true"></i>Console</a>`
+    : `<a class="btn sm primary" href="#/login">Sign in</a>`;
+  return `<nav class="nav"><div class="wrap">
+    ${brandLink()}
+    <div class="links">
+      <a href="#/docs" class="${current==="docs"?"here":""}">Docs</a>
+      <a href="#/docs#playground">Playground</a>
+      <a href="#/docs#errors">Errors</a>
+    </div>
+    <div class="right">${themeBtn()}${right}</div>
+  </div></nav>`;
+}
+function siteFooter(){
+  return `<footer><div class="wrap cols">
+    <div>${brandLink()}<p class="about">A Firecrawl-compatible scrape API running on Cloudflare Workers, D1, KV, and Queues.</p></div>
+    <div><h4>Endpoints</h4><ul>
+      <li><a href="#/docs#scrape">Scrape</a></li><li><a href="#/docs#crawl">Crawl</a></li>
+      <li><a href="#/docs#map">Map</a></li><li><a href="#/docs#search">Search</a></li></ul></div>
+    <div><h4>Reference</h4><ul>
+      <li><a href="#/docs#auth">Authentication</a></li><li><a href="#/docs#playground">Playground</a></li>
+      <li><a href="#/docs#errors">Error codes</a></li><li><a href="/docs">Machine catalog</a></li></ul></div>
+    <div><h4>Account</h4><ul>
+      <li><a href="#/login">Sign in</a></li><li><a href="/health">Health</a></li></ul></div>
+  </div></footer>`;
+}
+function wireSite(){
+  const t=$("#themeBtn");if(t)t.onclick=cycleTheme;
+}
+async function pulse(){
+  const d=$("#pulse"),t=$("#pulsetxt");if(!d)return;
+  try{const r=await fetch(API()+"/health");d.className="dot "+(r.ok?"up":"down");if(t)t.textContent=r.ok?"live":"HTTP "+r.status;}
+  catch{d.className="dot down";if(t)t.textContent="unreachable";}
+}
+
+/* ---------------- landing ---------------- */
+function vLanding(){
+  const tiles=[["scrape","tile wide tint"],["crawl","tile wide ink"],["map","tile third"],
+    ["search","tile third"],["extract","tile third"],["summarize","tile wide"],["batch","tile wide"]];
+  $("#root").innerHTML=`${siteNav()}
+  <header class="hero"><div class="wrap">
+    <div>
+      <h1 class="rise">Any site, clean markdown, one call.</h1>
+      <p class="lede rise d1">A Firecrawl-compatible API on Cloudflare Workers. Scrape, crawl, map, search, extract, and summarize.</p>
+      <div class="cta rise d2">
+        <a class="btn primary lg" href="#/docs">Read the docs</a>
+        <a class="btn lg" href="#/login">Sign in</a>
+      </div>
+    </div>
+    <div class="widget rise d3">
+      <div class="bar"><span class="verb POST">POST</span><span class="p">/v2/scrape</span>
+        <span class="live"><span class="dot" id="pulse"></span><b id="pulsetxt">checking</b></span></div>
+      <div class="bd">
+        <div class="go">
+          <label for="heroUrl" class="sr">URL to scrape</label>
+          <input type="text" id="heroUrl" value="https://example.com" spellcheck="false"/>
+          <button class="btn primary" id="heroRun"><i class="ph ph-play" aria-hidden="true"></i>Run</button>
+        </div>
+        <pre class="out" id="heroOut">This form calls the live API. Add a key in the playground, then run it from here.</pre>
+      </div>
+    </div>
+  </div></header>
+
+  <section class="section" data-reveal><div class="wrap">
+    <h2>Seven endpoints, one key.</h2>
+    <p class="sub">Each one answers in the Firecrawl v2 response shape, so an existing SDK client works by changing the base URL and nothing else.</p>
+    <div class="bento">
+      ${tiles.map(([id,cls])=>{const e=EP(id);return `<article class="${cls}">
+        <i class="ph ${e.icon}" aria-hidden="true"></i>
+        <h3>${esc(e.title)}</h3>
+        <p>${esc(e.blurb)}</p>
+        ${cls.includes("wide")&&e.example?`<pre>${hi(e.example)}</pre>`:`<code>${esc(e.method)} ${esc(e.path)}</code>`}
+      </article>`;}).join("")}
+    </div>
+  </div></section>
+
+  <section class="section" data-reveal><div class="wrap">
+    <h2>Start with three lines.</h2>
+    <p class="sub">Point any Firecrawl client at this host, or call it directly with curl.</p>
+    <div class="panel" style="margin-top:28px">
+      <div class="panel-hd"><div class="tabs" id="qtabs" role="group" aria-label="Language"></div>
+        <button class="btn sm" id="qcopy" style="margin-left:auto"><i class="ph ph-copy" aria-hidden="true"></i>Copy</button></div>
+      <div class="panel-bd"><pre class="out" id="qcode" style="max-height:none"></pre></div>
+    </div>
+  </div></section>
+
+  <section class="section" data-reveal><div class="wrap facts">
+    <div>
+      <h2>Built to stay on the free tier.</h2>
+      <p class="sub">Workers runs the API, D1 holds keys and jobs, KV caches pages, Queues carries crawls, Workers AI does extraction. Browser rendering is left out on purpose because it needs a paid plan.</p>
+    </div>
+    <div>
+      <div class="factgroup"><h3>Limits you set</h3><dl>
+        <dt>rate limit</dt><dd>Requests per minute, per key.</dd>
+        <dt>monthly cap</dt><dd>Credit ceiling per key, or none at all.</dd>
+        <dt>crawl size</dt><dd>Page and depth ceilings from worker config.</dd>
+      </dl></div>
+      <div class="factgroup"><h3>Access</h3><dl>
+        <dt>docs</dt><dd>Open to everyone, playground included.</dd>
+        <dt>keys</dt><dd>Created in the console, shown once.</dd>
+        <dt>accounts</dt><dd>Invite only. There is no public signup.</dd>
+      </dl></div>
+    </div>
+  </div></section>
+
+  <div class="wrap"><section class="band" data-reveal>
+    <div><h2>Keys, usage, and limits live in the console.</h2>
+      <p>Issue a key per environment, watch credits by endpoint, and invite the people who need access.</p></div>
+    <a class="btn primary lg" href="#/login">Sign in</a>
+  </section></div>
+  ${siteFooter()}`;
+  wireSite();
+  pulse();
+
+  /* Hero widget calls the real scrape endpoint. Nothing here is a mock preview. */
+  $("#heroRun").onclick=async ev=>{
+    const btn=ev.currentTarget,out=$("#heroOut"),url=$("#heroUrl").value.trim();
+    if(!url){out.textContent="Enter a URL first.";return;}
+    btn.disabled=true;out.textContent="Scraping...";
+    const t0=performance.now();
+    try{
+      const r=await fetch(API()+"/v2/scrape",{method:"POST",
+        headers:{"content-type":"application/json",...(KEY()?{authorization:"Bearer "+KEY()}:{})},
+        body:JSON.stringify({url,formats:[{type:"markdown"}]})});
+      const j=await r.json().catch(()=>({}));
+      const md=j&&j.data&&j.data.markdown;
+      out.innerHTML=r.ok&&md
+        ? `<span class="tok-lit">HTTP ${r.status} in ${Math.round(performance.now()-t0)} ms</span>\n\n`+esc(md.slice(0,900))
+        : hi(j);
+      if(r.status===401)toast("Add an API key in the playground first.","bad");
+    }catch(e){out.textContent=e.message;}
+    finally{btn.disabled=false;}
+  };
+
+  const SNIPPETS={
+    curl:()=>`curl -s -X POST ${API()}/v2/scrape \\\n  -H "Authorization: Bearer $FIRECRAWL_KEY" \\\n  -H "content-type: application/json" \\\n  -d '{"url":"https://example.com","formats":[{"type":"markdown"}]}'`,
+    javascript:()=>`import Firecrawl from "@mendable/firecrawl-js";\n\nconst firecrawl = new Firecrawl({\n  apiKey: process.env.FIRECRAWL_KEY,\n  apiUrl: "${API()}",\n});\n\nconst doc = await firecrawl.scrape("https://example.com", { formats: ["markdown"] });`,
+    python:()=>`from firecrawl import FirecrawlApp\n\napp = FirecrawlApp(\n    api_key=os.environ["FIRECRAWL_KEY"],\n    api_url="${API()}",\n)\n\ndoc = app.scrape_url("https://example.com", formats=["markdown"])`,
+  };
+  let lang="curl";
+  const drawQ=()=>{
+    $("#qtabs").innerHTML=Object.keys(SNIPPETS).map(k=>
+      `<button type="button" data-l="${k}" aria-pressed="${k===lang}">${k}</button>`).join("");
+    $$("#qtabs button").forEach(b=>b.onclick=()=>{lang=b.dataset.l;drawQ();});
+    $("#qcode").textContent=SNIPPETS[lang]();
+  };
+  drawQ();
+  $("#qcopy").onclick=ev=>copy(SNIPPETS[lang](),ev.currentTarget);
+}
+
+/* ---------------- docs, with the playground built in ---------------- */
+const ERRORS=[["UNAUTHORIZED",401,"Missing or invalid key."],["KEY_REVOKED",403,"That key was revoked."],
+  ["RATE_LIMIT",429,"Per-key requests per minute exceeded."],["INSUFFICIENT_CREDITS",402,"Monthly cap reached."],
+  ["FORBIDDEN",403,"Admin only."],["BAD_REQUEST",400,"Validation failed."],
+  ["SCRAPE_FAILED",422,"The target page could not be fetched."],["NOT_FOUND",404,"Unknown job or key."]];
+
+function vDocs(){
+  const groups=[...new Set(EPS.map(e=>e.group))];
+  $("#root").innerHTML=`${siteNav("docs")}
+  <div class="keybar"><div class="wrap">
+    <label for="dkey">API key</label>
+    <input type="text" id="dkey" value="${esc(KEY())}" placeholder="fc-..." spellcheck="false" autocomplete="off"/>
+    <span style="color:var(--ink-3);font-size:12px">Stored in this browser only.</span>
+    <span class="state"><span class="dot" id="pulse"></span><b id="pulsetxt">checking</b></span>
+  </div></div>
+  <div class="wrap docs">
+    <nav class="docnav" aria-label="Docs sections">
+      <b>Start</b>
+      <a href="#/docs#auth">Authentication</a>
+      <a href="#/docs#playground">Playground</a>
+      ${groups.map(g=>`<b>${esc(g)}</b>${EPS.filter(e=>e.group===g).map(e=>
+        `<a href="#/docs#${e.id}">${esc(e.title)}</a>`).join("")}`).join("")}
+      <b>Reference</b>
+      <a href="#/docs#errors">Error codes</a>
+    </nav>
+    <main class="doc">
+      <h1>Docs</h1>
+      <p class="lede">Every endpoint on this worker, with the exact request shape and a form that runs it. No account needed to read or to try.</p>
+
+      <section class="ep" id="auth" style="border-top:0;padding-top:32px;margin-top:32px">
+        <h2>Authentication</h2>
+        <p class="desc">Send your key as a bearer token on every call. Keys are created in the console, each with its own rate limit and monthly cap.</p>
+        <div class="split">
+          <pre class="out" style="max-height:none">Authorization: Bearer fc-...
+Base URL: ${esc(API())}</pre>
+          <div>
+            <p class="desc" style="margin-top:0">No key yet? Sign in to the console and create one. Accounts are invite only.</p>
+            <div class="row" style="margin-top:14px"><a class="btn primary" href="#/login">Sign in</a>
+              <button class="btn" id="usekey"><i class="ph ph-key" aria-hidden="true"></i>Load saved key</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="ep" id="playground">
+        <h2>Playground</h2>
+        <p class="desc">Paste a key in the bar above once. Every endpoint below then gets a form that sends a real request to this worker and shows the response, the status, and how long it took. Crawl and batch jobs poll themselves until they finish.</p>
+      </section>
+
+      ${EPS.map(e=>`<section class="ep" id="${e.id}">
+        <h2>${esc(e.title)}</h2>
+        <div class="sig"><span class="verb ${e.method}">${e.method}</span><span>${esc(e.path)}</span></div>
+        <p class="desc">${esc(e.blurb)}</p>
+        <div class="params">${e.params.map(([n,t,d])=>`<div class="p">
+          <div class="n">${esc(n)}<em>${esc(t)}</em></div><div class="d">${esc(d)}</div></div>`).join("")}</div>
+        ${e.example?`<div class="split">
+          <div><span class="flabel">Request body</span><pre class="out" style="max-height:none;margin-top:6px">${hi(e.example)}</pre></div>
+          <div><span class="flabel">Shell</span><pre class="out" style="max-height:none;margin-top:6px" id="curl_${e.id}"></pre></div>
+        </div>`:""}
+        <div class="try">
+          <div class="hd"><i class="ph ph-play-circle" aria-hidden="true" style="color:var(--accent)"></i><h3>Try it</h3>
+            <span class="note" id="meta_${e.id}">Nothing sent yet</span></div>
+          ${e.form.map(([name,kind,def])=>`<div class="field">
+            <label for="f_${e.id}_${name}">${esc(name)}</label>
+            ${kind==="textarea"
+              ?`<textarea id="f_${e.id}_${name}">${esc(def)}</textarea>`
+              :`<input type="${kind==="number"?"number":"text"}" id="f_${e.id}_${name}" value="${esc(def)}"/>`}
+          </div>`).join("")}
+          <div class="row"><button class="btn primary" data-run="${e.id}"><i class="ph ph-play" aria-hidden="true"></i>Send request</button>
+            <button class="btn" data-curl="${e.id}"><i class="ph ph-terminal-window" aria-hidden="true"></i>Copy as curl</button></div>
+          <div id="poll_${e.id}" style="margin-top:12px"></div>
+          <pre class="out" id="out_${e.id}" style="margin-top:12px">The response appears here.</pre>
+        </div>
+      </section>`).join("")}
+
+      <section class="ep" id="errors">
+        <h2>Error codes</h2>
+        <p class="desc">Every failure returns the same envelope: success false, a code, and a readable message.</p>
+        <div class="params" style="margin-top:18px">${ERRORS.map(([c,h,m])=>`<div class="p">
+          <div class="n">${esc(c)}<em>HTTP ${h}</em></div><div class="d">${esc(m)}</div></div>`).join("")}</div>
+      </section>
+    </main>
+  </div>
+  ${siteFooter()}`;
+  wireSite();
+  pulse();
+
+  const keyInput=$("#dkey");
+  keyInput.oninput=()=>localStorage.setItem("fc_lastkey",keyInput.value.trim());
+  $("#usekey").onclick=()=>{keyInput.value=KEY();toast(KEY()?"Key loaded from this browser.":"No key saved in this browser.",KEY()?"ok":"bad");};
+
+  EPS.forEach(e=>{
+    const read=name=>$(`#f_${e.id}_${name}`).value;
+    const refreshCurl=()=>{const el=$("#curl_"+e.id);if(el)el.textContent=curlFor(e,buildBody(e,read));};
+    refreshCurl();
+    e.form.forEach(([name])=>{const el=$(`#f_${e.id}_${name}`);if(el)el.oninput=refreshCurl;});
+    $(`button[data-curl="${e.id}"]`).onclick=ev=>copy(curlFor(e,buildBody(e,read)),ev.currentTarget);
+    $(`button[data-run="${e.id}"]`).onclick=ev=>runEndpoint(e,read,ev.currentTarget);
+  });
+}
+
+const pollTimers={};
+async function runEndpoint(spec,read,btn){
+  const out=$("#out_"+spec.id),meta=$("#meta_"+spec.id),pollBox=$("#poll_"+spec.id);
+  clearInterval(pollTimers[spec.id]);pollBox.innerHTML="";
+  const body=buildBody(spec,read);
+  const keyField=$("#dkey");
+  const key=((keyField&&keyField.value)||KEY()).trim();
+  if(spec.id==="status"&&!body.jobId){
+    meta.innerHTML=`<span class="chip bad">jobId missing</span>`;
+    out.textContent="Run a crawl or a batch scrape first, then paste the job ID here.";return;
+  }
+  btn.disabled=true;out.textContent="Waiting for the worker...";
+  const t0=performance.now();
+  try{
+    const path=spec.raw?spec.raw(body):spec.path;
+    const opts={method:spec.method,headers:{"content-type":"application/json",...(key?{authorization:"Bearer "+key}:{})}};
+    if(spec.method!=="GET")opts.body=JSON.stringify(body);
+    const r=await fetch(API()+path,opts);
+    const j=await r.json().catch(()=>({}));
+    paint(spec.id,r.status,Math.round(performance.now()-t0),j);
+    if(r.status===401)toast("That request needs a valid API key.","bad");
+    if(j&&j.id&&spec.async)startPoll(spec,j.id);
+  }catch(e){
+    meta.innerHTML=`<span class="chip bad">failed</span>`;
+    out.textContent=e.message;
+  }finally{btn.disabled=false;}
+}
+function paint(id,status,ms,j){
+  const ok=status>=200&&status<300;
+  const size=new Blob([JSON.stringify(j)]).size;
+  $("#meta_"+id).innerHTML=`<span class="chip ${ok?"ok":"bad"}">HTTP ${status}</span> <span class="mono" style="color:var(--ink-3)">${ms?ms+" ms":""} ${size>1024?(size/1024).toFixed(1)+" kB":size+" B"}</span>`;
+  $("#out_"+id).innerHTML=hi(j);
+}
+function startPoll(spec,jobId){
+  const box=$("#poll_"+spec.id),t0=Date.now();
+  const jobField=$("#f_status_jobId");if(jobField)jobField.value=jobId;
+  pollTimers[spec.id]=setInterval(async()=>{
+    box.innerHTML=`<div class="callout info" style="margin:0"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i><span>Polling ${esc(spec.async)}/${esc(jobId)} for ${Math.round((Date.now()-t0)/1000)}s</span></div>`;
+    try{
+      const keyField=$("#dkey");
+      const key=((keyField&&keyField.value)||KEY()).trim();
+      const r=await fetch(`${API()}/v2/${spec.async}/${jobId}`,{headers:key?{authorization:"Bearer "+key}:{}});
+      const j=await r.json();
+      paint(spec.id,r.status,0,j);
+      if(["completed","failed","cancelled"].includes(j.status)){
+        clearInterval(pollTimers[spec.id]);box.innerHTML="";toast("Job "+j.status+".",j.status==="completed"?"ok":"bad");
+      }
+    }catch{}
+    if(Date.now()-t0>120000){
+      clearInterval(pollTimers[spec.id]);
+      box.innerHTML=`<div class="callout info" style="margin:0"><i class="ph ph-clock-countdown" aria-hidden="true"></i><span>Stopped polling after 2 minutes. The job may still be running.</span></div>`;
+    }
+  },2500);
+}
+
+/* ---------------- auth views ---------------- */
+const PITCH=`<div class="pitch">
+  <h2>Your scrape API, with the controls in one place.</h2>
+  <ul>
+    <li><i class="ph ph-key" aria-hidden="true"></i><span>Scoped keys with their own rate limit and monthly cap.</span></li>
+    <li><i class="ph ph-chart-line-up" aria-hidden="true"></i><span>Credits and requests broken down by endpoint and key.</span></li>
+    <li><i class="ph ph-book-open-text" aria-hidden="true"></i><span>Docs and playground stay open to everyone.</span></li>
+  </ul>
+</div>`;
+
+function vLogin(){
+  $("#root").innerHTML=`${siteNav()}<div class="auth">${PITCH}
+  <div class="form"><div class="inner">
     <h1>Sign in</h1>
-    <p class="sub">Keys, usage, and a live tester for your scrape API.</p>
-    <div id="e"></div>
-    <label for="email">Email</label><input type="email" id="email" autocomplete="username"/>
-    <label for="pw">Password</label><input type="password" id="pw" autocomplete="current-password"/>
-    <div class="row"><button id="go">Sign in</button></div>
-    <p class="desc" style="margin-top:16px">Need an account? Ask an admin to invite you. There is no public signup.</p>
-  </div>`;
-  $("#go").onclick=async()=>{
-    $("#go").disabled=true;
+    <p class="lede">Keys, usage, and teammates for this worker.</p>
+    <div id="err"></div>
+    <form id="f" novalidate>
+      <div class="field"><label for="email">Email</label><input type="email" id="email" autocomplete="username" placeholder="you@company.com" required/></div>
+      <div class="field"><label for="pw">Password</label><input type="password" id="pw" autocomplete="current-password" required/></div>
+      <button class="btn primary" id="go" type="submit" style="width:100%;justify-content:center">Sign in</button>
+    </form>
+    <p style="margin-top:18px;color:var(--ink-3);font-size:13px">Need access? Ask an admin to invite you. There is no public signup. The docs and the playground stay open without an account.</p>
+  </div></div></div>`;
+  wireSite();
+  const fail=m=>$("#err").innerHTML=`<div class="callout err"><i class="ph ph-warning-circle" aria-hidden="true"></i><span>${esc(m)}</span></div>`;
+  $("#f").onsubmit=async e=>{
+    e.preventDefault();
+    const btn=$("#go");btn.disabled=true;
     try{
       const {status,j}=await api("/dashboard/auth/login",{method:"POST",body:JSON.stringify({email:$("#email").value.trim(),password:$("#pw").value})});
-      if(!j.success){$("#e").innerHTML=`<div class="err">${esc(j.error||("HTTP "+status))}</div>`;return;}
+      if(!j.success)return fail(j.error||("Request failed with HTTP "+status));
       remember(j.data);location.hash="#/overview";
-    }finally{$("#go").disabled=false;}
+    }catch{fail("Could not reach the API.");}
+    finally{btn.disabled=false;}
   };
 }
 
-async function vInvite(el,token){
-  el.innerHTML=`<div class="authbox">
-    <div class="brand">${MARK}<div class="wordmark"><b>Firecrawl</b> <span>Console</span></div></div>
+function vInvite(token){
+  $("#root").innerHTML=`${siteNav()}<div class="auth">${PITCH}
+  <div class="form"><div class="inner">
     <h1>Set your password</h1>
-    <p class="sub">This is your first sign-in. Choose a password of at least 8 characters.</p>
-    <div id="e"></div>
-    <label for="pw">Password</label><input type="password" id="pw" autocomplete="new-password"/>
-    <label for="pw2">Confirm</label><input type="password" id="pw2" autocomplete="new-password"/>
-    <div class="row"><button id="go">Save and continue</button></div>
-  </div>`;
-  $("#go").onclick=async()=>{
+    <p class="lede">This is your first sign-in. Pick a password of at least 8 characters.</p>
+    <div id="err"></div>
+    <form id="f" novalidate>
+      <div class="field"><label for="pw">Password</label><input type="password" id="pw" autocomplete="new-password" required/><span class="hint">Minimum 8 characters.</span></div>
+      <div class="field"><label for="pw2">Confirm password</label><input type="password" id="pw2" autocomplete="new-password" required/></div>
+      <button class="btn primary" id="go" type="submit" style="width:100%;justify-content:center">Save and continue</button>
+    </form>
+  </div></div></div>`;
+  wireSite();
+  const fail=m=>$("#err").innerHTML=`<div class="callout err"><i class="ph ph-warning-circle" aria-hidden="true"></i><span>${esc(m)}</span></div>`;
+  $("#f").onsubmit=async e=>{
+    e.preventDefault();
     const password=$("#pw").value;
-    if(password!==$("#pw2").value){$("#e").innerHTML=`<div class="err">Passwords do not match.</div>`;return;}
-    $("#go").disabled=true;
+    if(password.length<8)return fail("That password is shorter than 8 characters.");
+    if(password!==$("#pw2").value)return fail("Those two passwords do not match.");
+    const btn=$("#go");btn.disabled=true;
     try{
       const {status,j}=await api("/dashboard/auth/accept-invite",{method:"POST",body:JSON.stringify({token,password})});
-      if(!j.success){$("#e").innerHTML=`<div class="err">${esc(j.error||("HTTP "+status))}</div>`;return;}
+      if(!j.success)return fail(j.error||("Request failed with HTTP "+status));
       remember(j.data);location.hash="#/overview";
-    }finally{$("#go").disabled=false;}
+    }finally{btn.disabled=false;}
   };
 }
+
+/* ---------------- console chrome ---------------- */
+function consoleChrome(inner){
+  const here=parseRoute().name;
+  const links=Object.entries(CONSOLE_PAGES).filter(([,p])=>!p.admin||ROLE()==="admin");
+  return `<header class="top">
+    ${brandLink("Console")}
+    <div class="right">
+      <span class="host" title="API base URL"><span class="dot" id="pulse"></span><b id="pulsetxt">${esc(API().replace(/^https?:\/\//,""))}</b></span>
+      ${themeBtn()}
+      <button class="btn icon quiet" id="baseBtn" title="Change API base URL" aria-label="Change API base URL"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i></button>
+    </div>
+  </header>
+  <div class="layout">
+    <nav class="side" aria-label="Console">
+      ${links.map(([path,p])=>`<a href="#${path}" ${here===path?'aria-current="page"':""}><i class="ph ${p.icon}" aria-hidden="true"></i>${p.title}</a>`).join("")}
+      <a href="#/docs"><i class="ph ph-book-open-text" aria-hidden="true"></i>Docs</a>
+      <div class="who">
+        <span class="mail">${esc(EMAIL())}</span>
+        <button class="btn sm quiet" id="outBtn"><i class="ph ph-sign-out" aria-hidden="true"></i>Log out</button>
+      </div>
+    </nav>
+    <main class="main" id="view">${inner}</main>
+  </div>`;
+}
+function wireConsole(){
+  wireSite();
+  $("#outBtn").onclick=async()=>{try{await api("/dashboard/auth/logout",{method:"POST"})}catch{}logout();location.hash="#/";};
+  $("#baseBtn").onclick=()=>{
+    const v=prompt("API base URL for this browser. Leave blank to use this origin.",localStorage.getItem("fc_base")||"");
+    if(v===null)return;
+    if(v.trim())localStorage.setItem("fc_base",v.trim());else localStorage.removeItem("fc_base");
+    render();
+  };
+  const d=$("#pulse");
+  if(d)fetch(API()+"/health").then(r=>{d.className="dot "+(r.ok?"up":"down");}).catch(()=>{d.className="dot down";});
+}
+
+/* ---------------- console views ---------------- */
+function areaChart(daily){
+  const pts=(daily||[]).map(d=>d.credits);
+  if(!pts.length)return `<div class="empty"><i class="ph ph-chart-line" aria-hidden="true"></i><b>No traffic yet</b><p>Run a request from the playground and the daily curve shows up here.</p></div>`;
+  const w=600,h=150,pad=6,max=Math.max(1,...pts);
+  const x=i=>pts.length===1?w/2:pad+i*(w-pad*2)/(pts.length-1);
+  const y=v=>h-pad-(v/max)*(h-pad*2);
+  const line=pts.map((v,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const area=`${line} L${x(pts.length-1).toFixed(1)},${h} L${x(0).toFixed(1)},${h} Z`;
+  const bw=(w-pad*2)/Math.max(1,pts.length);
+  const hits=(daily||[]).map((d,i)=>`<rect class="hit" x="${(x(i)-bw/2).toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="${h}" fill="transparent"><title>${esc(d.day)}: ${d.credits} credits</title></rect>`).join("");
+  return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="Daily credits for the last 30 days">
+    <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="var(--accent)" stop-opacity=".26"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#fill)"/><path class="ln" d="${line}"/>${hits}</svg>
+  <div class="legend"><span>${esc((daily[0]||{}).day||"")}</span><span>peak ${max}</span><span>${esc((daily[daily.length-1]||{}).day||"")}</span></div>`;
+}
+const jobChip=s=>s==="completed"?`<span class="chip ok">completed</span>`
+  :s==="failed"?`<span class="chip bad">failed</span>`
+  :s==="cancelled"?`<span class="chip">cancelled</span>`
+  :`<span class="chip warn">${esc(s)}</span>`;
 
 async function vOverview(el){
   const [{j:me},{j:usage},{j:jobs}]=await Promise.all([
     api("/dashboard/auth/me"),api("/dashboard/usage?days=30"),api("/dashboard/jobs?limit=15")]);
-  if(!me.success){el.innerHTML=`<div class="err">${esc(me.error)}</div>`;return;}
+  if(!me.success){el.innerHTML=`<div class="callout err"><i class="ph ph-warning-circle" aria-hidden="true"></i><span>${esc(me.error||"Could not load your account.")}</span></div>`;return;}
   if(me.data.role)localStorage.setItem("fc_role",me.data.role);
   const d=me.data,u=usage.success?usage.data:{total:{credits:0,requests:0},daily:[],byEndpoint:[],byKey:[]};
-  const max=Math.max(1,...(u.daily||[]).map(x=>x.credits));
-  el.innerHTML=`<h1>Overview</h1><p class="sub">Team <span class="mono">${esc((d.teamId||"").slice(0,8))}…</span> · last 30 days</p>
-  <div class="cards">
-    <div class="card stat"><div class="num">${u.total.credits}</div><div class="lbl">credits</div></div>
-    <div class="card stat"><div class="num">${u.total.requests}</div><div class="lbl">requests</div></div>
-    <div class="card stat"><div class="num">${d.creditsUsedMonth}</div><div class="lbl">this month ${d.creditsLimit?`/ ${d.creditsLimit}`:"unlimited"}</div></div>
-    <div class="card stat"><div class="num">${(jobs.success?jobs.data:[]).filter(x=>x.status==="queued"||x.status==="active").length}</div><div class="lbl">active jobs</div></div>
+  const list=jobs.success?jobs.data:[];
+  const running=list.filter(x=>x.status==="queued"||x.status==="active").length;
+  el.innerHTML=`
+  <div class="head">
+    <div><h1>Overview</h1><p>Team <span class="mono">${esc((d.teamId||"").slice(0,8))}</span> over the last 30 days.</p></div>
+    <div class="acts"><a class="btn" href="#/docs#playground"><i class="ph ph-play-circle" aria-hidden="true"></i>Open playground</a></div>
   </div>
-  <div class="grid2">
-    <div class="card"><h2>Daily credits</h2><p class="desc">Last 30 days</p>
-      <div class="bars">${(u.daily||[]).map(x=>`<div class="bar" style="height:${Math.round(x.credits/max*100)}%" title="${x.day}: ${x.credits}"></div>`).join("")||"<span class='desc'>No traffic yet. Run a scrape from Tester.</span>"}</div></div>
-    <div class="card"><h2>By endpoint</h2><table><tr><th>endpoint</th><th>reqs</th><th>credits</th></tr>
-      ${(u.byEndpoint||[]).map(x=>`<tr><td class="mono">${esc(x.endpoint)}</td><td>${x.requests}</td><td>${x.credits}</td></tr>`).join("")||"<tr><td colspan=3 class='desc'>—</td></tr>"}</table></div>
+  <div class="stats">
+    <div class="stat"><div class="k"><i class="ph ph-coins" aria-hidden="true"></i>Credits</div><div class="v">${u.total.credits}</div><div class="s">last 30 days</div></div>
+    <div class="stat"><div class="k"><i class="ph ph-arrows-left-right" aria-hidden="true"></i>Requests</div><div class="v">${u.total.requests}</div><div class="s">last 30 days</div></div>
+    <div class="stat"><div class="k"><i class="ph ph-calendar-blank" aria-hidden="true"></i>This month</div><div class="v">${d.creditsUsedMonth}</div><div class="s">${d.creditsLimit?"cap "+d.creditsLimit:"no cap set"}</div></div>
+    <div class="stat"><div class="k"><i class="ph ph-spinner-gap" aria-hidden="true"></i>Active jobs</div><div class="v">${running}</div><div class="s">queued or running</div></div>
   </div>
-  <div class="card" style="margin-top:12px"><h2>Usage by key</h2>
-    <table><tr><th>key</th><th>reqs</th><th>credits</th></tr>
-    ${(u.byKey||[]).map(x=>`<tr><td class="mono">${esc(x.name)} <span class="desc">${esc(x.prefix)}</span></td><td>${x.requests}</td><td>${x.credits}</td></tr>`).join("")||"<tr><td colspan=3 class='desc'>—</td></tr>"}</table></div>
-  <div class="card" style="margin-top:12px"><h2>Recent jobs</h2>
-    <table><tr><th>id</th><th>kind</th><th>status</th><th>done</th><th>created</th></tr>
-    ${(jobs.success?jobs.data:[]).map(x=>`<tr><td class="mono">${esc(x.id.slice(0,8))}…</td><td>${esc(x.kind)}</td><td>${statusChip(x.status)}</td><td>${x.completed}/${x.total}</td><td class="desc">${esc((x.created_at||"").slice(0,16).replace("T"," "))}</td></tr>`).join("")||"<tr><td colspan=5 class='desc'>—</td></tr>"}</table></div>`;
+  <div class="cols">
+    <section class="panel"><div class="panel-hd"><h2>Daily credits</h2><span class="note">hover a day for the exact count</span></div>
+      <div class="panel-bd">${areaChart(u.daily)}</div></section>
+    <section class="panel"><div class="panel-hd"><h2>By endpoint</h2></div>
+      ${(u.byEndpoint||[]).length?`<table><thead><tr><th>Endpoint</th><th>Requests</th><th>Credits</th></tr></thead><tbody>
+        ${u.byEndpoint.map(x=>`<tr><td class="mono">${esc(x.endpoint)}</td><td class="num">${x.requests}</td><td class="num">${x.credits}</td></tr>`).join("")}
+      </tbody></table>`:`<div class="empty"><i class="ph ph-list-dashes" aria-hidden="true"></i><b>Nothing recorded</b><p>Endpoint totals appear after your first authenticated call.</p></div>`}
+    </section>
+  </div>
+  <section class="panel"><div class="panel-hd"><h2>Usage by key</h2><a class="note" href="#/keys">Manage keys</a></div>
+    ${(u.byKey||[]).length?`<table><thead><tr><th>Key</th><th>Requests</th><th>Credits</th></tr></thead><tbody>
+      ${u.byKey.map(x=>`<tr><td>${esc(x.name)}<span class="sub2 mono">${esc(x.prefix)}</span></td><td class="num">${x.requests}</td><td class="num">${x.credits}</td></tr>`).join("")}
+    </tbody></table>`:`<div class="empty"><i class="ph ph-key" aria-hidden="true"></i><b>No key traffic yet</b><p>Create a key, then call the API with it to see per-key spend.</p></div>`}
+  </section>
+  <section class="panel"><div class="panel-hd"><h2>Recent jobs</h2><span class="note">crawl and batch runs</span></div>
+    ${list.length?`<table><thead><tr><th>Job</th><th>Kind</th><th>Status</th><th>Progress</th><th>Created</th></tr></thead><tbody>
+      ${list.map(x=>`<tr><td class="mono">${esc(x.id.slice(0,8))}</td><td>${esc(x.kind)}</td><td>${jobChip(x.status)}</td>
+        <td class="num">${x.completed} / ${x.total}</td><td class="mono" style="color:var(--ink-3)">${shortDate(x.created_at)}</td></tr>`).join("")}
+    </tbody></table>`:`<div class="empty"><i class="ph ph-stack" aria-hidden="true"></i><b>No jobs yet</b><p>Crawls and batch scrapes you start will be listed here with live progress.</p></div>`}
+  </section>`;
 }
-const statusChip=s=>s==="completed"?`<span class="status-ok">completed</span>`:s==="failed"?`<span class="status-bad">failed</span>`:(s==="cancelled"?`<span class="desc">cancelled</span>`:`<span class="status-warn">${esc(s)}</span>`);
 
 async function vKeys(el){
   const {j}=await api("/dashboard/keys");
   const keys=j.success?j.data:[];
-  el.innerHTML=`<h1>API keys</h1><p class="sub">Each key has its own rate limit and monthly cap. The secret is shown once.</p>
+  el.innerHTML=`
+  <div class="head"><div><h1>API keys</h1><p>Each key carries its own rate limit and monthly cap. The secret is shown once.</p></div></div>
   <div id="banner"></div>
-  <div class="card"><h2>New key</h2>
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px">
-      <div><label>Name</label><input type="text" id="kname" value="default"/></div>
-      <div><label>Req / min</label><input type="number" id="krpm" value="60" min="1" max="1000"/></div>
-      <div><label>Monthly cap (0 = none)</label><input type="number" id="kcap" value="0" min="0"/></div>
+  <section class="panel"><div class="panel-hd"><h2>Create a key</h2></div><div class="panel-bd">
+    <div class="cols even" style="gap:14px">
+      <div class="field"><label for="kname">Name</label><input type="text" id="kname" value="default"/><span class="hint">Where this key will be used, for example "staging worker".</span></div>
+      <div class="cols even" style="gap:14px">
+        <div class="field"><label for="krpm">Requests per minute</label><input type="number" id="krpm" value="60" min="1" max="1000"/></div>
+        <div class="field"><label for="kcap">Monthly cap</label><input type="number" id="kcap" value="0" min="0"/><span class="hint">0 means no cap.</span></div>
+      </div>
     </div>
-    <div class="row"><button id="kcreate">Create key</button></div></div>
-  <div class="card" style="margin-top:12px"><h2>${keys.length} key${keys.length===1?"":"s"}</h2>
-    <table><tr><th>name</th><th>prefix</th><th>rpm</th><th>monthly cap</th><th>used (mo)</th><th>last used</th><th></th></tr>
+    <div class="row"><button class="btn primary" id="kcreate"><i class="ph ph-plus" aria-hidden="true"></i>Create key</button></div>
+  </div></section>
+  <section class="panel"><div class="panel-hd"><h2>${keys.length} key${keys.length===1?"":"s"}</h2></div>
+    ${keys.length?`<table><thead><tr><th>Name</th><th>Prefix</th><th>Req / min</th><th>Monthly cap</th><th>Used</th><th>Last used</th><th></th></tr></thead><tbody>
     ${keys.map(k=>`<tr>
-      <td>${esc(k.name||"")}<br/><span class="desc mono">${esc(k.id.slice(0,8))}…</span></td>
+      <td>${esc(k.name||"")}<span class="sub2 mono">${esc(k.id.slice(0,8))}</span></td>
       <td class="mono">${esc(k.key_prefix)}</td>
-      <td><input type="number" data-k="rpm" data-id="${k.id}" value="${k.rate_limit_per_min}" min="1" max="1000" style="width:80px"/></td>
-      <td><input type="number" data-k="cap" data-id="${k.id}" value="${k.monthly_limit}" min="0" style="width:90px"/></td>
-      <td>${k.used_month??0}</td><td class="desc">${k.last_used_at?esc(k.last_used_at.slice(0,16).replace("T"," ")):"never"}</td>
-      <td style="white-space:nowrap">${k.is_active
-        ?`<button class="ghost small" data-act="save" data-id="${k.id}">Save</button> <button class="danger small" data-act="revoke" data-id="${k.id}">Revoke</button>`
-        :`<span class="status-bad">revoked</span>`}</td></tr>`).join("")||"<tr><td colspan=7 class='desc'>No keys yet. Create one above.</td></tr>"}</table></div>`;
-  $("#kcreate").onclick=async()=>{
-    const {status,j}=await api("/dashboard/keys",{method:"POST",body:JSON.stringify({name:$("#kname").value,rateLimitPerMin:Number($("#krpm").value),monthlyLimit:Number($("#kcap").value)})});
-    if(!j.success){$("#banner").innerHTML=`<div class="err">${esc(j.error||("HTTP "+status))}</div>`;return;}
-    try{localStorage.setItem("fc_lastkey",j.data.key);}catch{}
-    const banner=`<div class="keybanner"><b>Copy this key now. It will not be shown again.</b><br/><code id="newkey">${esc(j.data.key)}</code><div class="row"><button class="small" id="copyk">Copy</button></div></div>`;
-    await vKeys(el);
-    const slot=el.querySelector("#banner");
-    if(slot){slot.innerHTML=banner;el.querySelector("#copyk")?.addEventListener("click",e=>cp(j.data.key,e.target));}
+      <td><input class="tiny" type="number" data-k="rpm" data-id="${k.id}" value="${k.rate_limit_per_min}" min="1" max="1000" style="width:78px" aria-label="Requests per minute"/></td>
+      <td><input class="tiny" type="number" data-k="cap" data-id="${k.id}" value="${k.monthly_limit}" min="0" style="width:88px" aria-label="Monthly cap"/></td>
+      <td class="num">${k.used_month??0}</td>
+      <td class="mono" style="color:var(--ink-3)">${k.last_used_at?shortDate(k.last_used_at):"never"}</td>
+      <td style="white-space:nowrap;text-align:right">${k.is_active
+        ?`<button class="btn sm" data-act="save" data-id="${k.id}">Save</button> <button class="btn sm danger" data-act="revoke" data-id="${k.id}">Revoke</button>`
+        :`<span class="chip bad">revoked</span>`}</td></tr>`).join("")}
+    </tbody></table>`:`<div class="empty"><i class="ph ph-key" aria-hidden="true"></i><b>No keys yet</b><p>Create your first key above, then paste it into the playground or your SDK client.</p></div>`}
+  </section>`;
+
+  $("#kcreate").onclick=async e=>{
+    const btn=e.currentTarget;btn.disabled=true;
+    try{
+      const {status,j}=await api("/dashboard/keys",{method:"POST",body:JSON.stringify({
+        name:$("#kname").value,rateLimitPerMin:Number($("#krpm").value),monthlyLimit:Number($("#kcap").value)})});
+      if(!j.success){$("#banner").innerHTML=`<div class="callout err"><i class="ph ph-warning-circle" aria-hidden="true"></i><span>${esc(j.error||("Request failed with HTTP "+status))}</span></div>`;return;}
+      try{localStorage.setItem("fc_lastkey",j.data.key);}catch{}
+      await vKeys(el);
+      const slot=$("#banner",el);
+      if(slot){
+        slot.innerHTML=`<div class="reveal-key"><b><i class="ph-fill ph-seal-check" aria-hidden="true" style="color:var(--ok)"></i> Copy this key now. It is not shown again.</b>
+          <code>${esc(j.data.key)}</code><button class="btn sm" id="copyk"><i class="ph ph-copy" aria-hidden="true"></i>Copy key</button></div>`;
+        $("#copyk",el).onclick=ev=>copy(j.data.key,ev.currentTarget);
+      }
+    }finally{btn.disabled=false;}
   };
-  el.querySelectorAll("button[data-act]").forEach(b=>b.onclick=async()=>{
+  $$("button[data-act]",el).forEach(b=>b.onclick=async()=>{
     const id=b.dataset.id;
-    if(b.dataset.act==="revoke"&&!confirm("Revoke this key? Calls with it will get 403."))return;
     if(b.dataset.act==="save"){
-      const rpm=el.querySelector(`input[data-k="rpm"][data-id="${id}"]`).value;
-      const cap=el.querySelector(`input[data-k="cap"][data-id="${id}"]`).value;
+      const rpm=$(`input[data-k="rpm"][data-id="${id}"]`,el).value;
+      const cap=$(`input[data-k="cap"][data-id="${id}"]`,el).value;
       const {j}=await api(`/dashboard/keys/${id}`,{method:"PATCH",body:JSON.stringify({rateLimitPerMin:Number(rpm),monthlyLimit:Number(cap)})});
-      if(!j.success){alert(j.error);return;}
-      b.textContent="Saved";setTimeout(()=>b.textContent="Save",1200);return;
+      if(!j.success)return toast(j.error||"Could not save the key.","bad");
+      toast("Limits saved.");return;
     }
+    if(!confirm("Revoke this key? Calls using it will start failing with 403."))return;
     const {j}=await api(`/dashboard/keys/${id}`,{method:"DELETE"});
-    if(!j.success){alert(j.error);return;}
-    vKeys(el);
+    if(!j.success)return toast(j.error||"Could not revoke the key.","bad");
+    toast("Key revoked.");vKeys(el);
   });
 }
 
 async function vPeople(el){
-  if(ROLE()!=="admin"){el.innerHTML=`<div class="err">Admin only.</div>`;return;}
+  if(ROLE()!=="admin"){el.innerHTML=`<div class="callout err"><i class="ph ph-lock-key" aria-hidden="true"></i><span>This section is admin only.</span></div>`;return;}
   const {j}=await api("/dashboard/users");
   const people=j.success?j.data:[];
-  el.innerHTML=`<h1>People</h1><p class="sub">Invite a teammate. They set a password the first time they open the link.</p>
+  el.innerHTML=`
+  <div class="head"><div><h1>People</h1><p>Invite a teammate. They set their own password the first time they open the link.</p></div></div>
   <div id="banner"></div>
-  <div class="card"><h2>Invite</h2>
-    <label>Email</label><input type="email" id="iemail" placeholder="name@company.com"/>
-    <div class="row"><button id="inv">Send invite</button></div>
-    <p class="desc" style="margin-top:10px">You get a link to copy. We do not email it yet.</p></div>
-  <div class="card" style="margin-top:12px"><h2>${people.length} member${people.length===1?"":"s"}</h2>
-    <table><tr><th>email</th><th>role</th><th>status</th><th></th></tr>
+  <section class="panel"><div class="panel-hd"><h2>Invite a teammate</h2></div><div class="panel-bd">
+    <div class="field" style="max-width:420px"><label for="iemail">Email</label><input type="email" id="iemail" placeholder="teammate@company.com"/>
+      <span class="hint">You get a link to copy and send. Nothing is emailed yet.</span></div>
+    <div class="row"><button class="btn primary" id="inv"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>Create invite link</button></div>
+  </div></section>
+  <section class="panel"><div class="panel-hd"><h2>${people.length} member${people.length===1?"":"s"}</h2></div>
+    <table><thead><tr><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>
     ${people.map(p=>`<tr>
       <td>${esc(p.email)}</td>
-      <td><span class="pill">${esc(p.role)}</span></td>
-      <td>${p.active?`<span class="status-ok">active</span>`:`<span class="status-warn">pending invite</span>`}</td>
-      <td style="white-space:nowrap">${p.active
-        ?`<button class="ghost small" data-reset="${esc(p.email)}">Reset password</button>`
-        :`<button class="ghost small" data-re="${esc(p.email)}">Resend</button>`}</td>
-    </tr>`).join("")||"<tr><td colspan=4 class='desc'>Only you so far.</td></tr>"}</table></div>`;
-  const bannerFor=(j,label)=>{
-    const banner=`<div class="keybanner"><b>${label} for ${esc(j.data.email)} (expires ${esc((j.data.expiresAt||"").slice(0,10))})</b><br/><code>${esc(j.data.inviteUrl)}</code><div class="row"><button class="small" id="copyk">Copy link</button></div></div>`;
-    return banner;
+      <td><span class="chip${p.role==="admin"?" accent":""}">${esc(p.role)}</span></td>
+      <td>${p.active?`<span class="chip ok">active</span>`:`<span class="chip warn">invite pending</span>`}</td>
+      <td style="text-align:right;white-space:nowrap">${p.active
+        ?`<button class="btn sm" data-reset="${esc(p.email)}">Reset password</button>`
+        :`<button class="btn sm" data-re="${esc(p.email)}">New link</button>`}</td>
+    </tr>`).join("")||`<tr><td colspan="4"><div class="empty"><i class="ph ph-users-three" aria-hidden="true"></i><b>Just you so far</b><p>Invite the people who need keys and usage visibility.</p></div></td></tr>`}
+    </tbody></table>
+  </section>`;
+
+  const showLink=async(j,label)=>{
+    await vPeople(el);
+    const slot=$("#banner",el);
+    if(!slot)return;
+    slot.innerHTML=`<div class="reveal-key"><b><i class="ph-fill ph-link" aria-hidden="true" style="color:var(--accent)"></i> ${esc(label)} for ${esc(j.data.email)}, valid until ${esc((j.data.expiresAt||"").slice(0,10))}</b>
+      <code>${esc(j.data.inviteUrl)}</code><button class="btn sm" id="copyk"><i class="ph ph-copy" aria-hidden="true"></i>Copy link</button></div>`;
+    $("#copyk",el).onclick=ev=>copy(j.data.inviteUrl,ev.currentTarget);
   };
-  const send=async(email)=>{
+  const fail=m=>{const s=$("#banner",el);if(s)s.innerHTML=`<div class="callout err"><i class="ph ph-warning-circle" aria-hidden="true"></i><span>${esc(m)}</span></div>`;};
+  const send=async email=>{
+    if(!email)return fail("Enter an email address first.");
     const {status,j}=await api("/dashboard/users/invite",{method:"POST",body:JSON.stringify({email})});
-    if(!j.success){$("#banner").innerHTML=`<div class="err">${esc(j.error||("HTTP "+status))}</div>`;return;}
-    const banner=bannerFor(j,"Invite link");
-    await vPeople(el);
-    const slot=el.querySelector("#banner");
-    if(slot){slot.innerHTML=banner;el.querySelector("#copyk")?.addEventListener("click",e=>cp(j.data.inviteUrl,e.target));}
+    if(!j.success)return fail(j.error||("Request failed with HTTP "+status));
+    showLink(j,"Invite link");
   };
-  const reset=async(email)=>{
-    if(!confirm("Reset password for "+email+"? Their current password stops working. You will get a new invite link."))return;
+  const reset=async email=>{
+    if(!confirm("Reset the password for "+email+"? Their current password stops working and you get a fresh link."))return;
     const {status,j}=await api("/dashboard/users/reset-password",{method:"POST",body:JSON.stringify({email})});
-    if(!j.success){$("#banner").innerHTML=`<div class="err">${esc(j.error||("HTTP "+status))}</div>`;return;}
-    const banner=bannerFor(j,"Password reset link");
-    await vPeople(el);
-    const slot=el.querySelector("#banner");
-    if(slot){slot.innerHTML=banner;el.querySelector("#copyk")?.addEventListener("click",e=>cp(j.data.inviteUrl,e.target));}
+    if(!j.success)return fail(j.error||("Request failed with HTTP "+status));
+    showLink(j,"Password reset link");
   };
-  $("#inv").onclick=()=>send($("#iemail").value.trim());
-  el.querySelectorAll("button[data-re]").forEach(b=>b.onclick=()=>send(b.dataset.re));
-  el.querySelectorAll("button[data-reset]").forEach(b=>b.onclick=()=>reset(b.dataset.reset));
+  $("#inv",el).onclick=()=>send($("#iemail",el).value.trim());
+  $$("button[data-re]",el).forEach(b=>b.onclick=()=>send(b.dataset.re));
+  $$("button[data-reset]",el).forEach(b=>b.onclick=()=>reset(b.dataset.reset));
 }
 
-const EPS=[
- {id:"scrape",label:"Scrape",method:"POST",path:"/v2/scrape",fields:[["url","https://example.com"],["formats",'[{"type":"markdown"}]',1]]},
- {id:"map",label:"Map",method:"POST",path:"/v2/map",fields:[["url","https://example.com"],["limit","10"]]},
- {id:"search",label:"Search",method:"POST",path:"/v2/search",fields:[["query","firecrawl"],["limit","5"]]},
- {id:"crawl",label:"Crawl",method:"POST",path:"/v2/crawl",async:"crawl",fields:[["url","https://example.com"],["limit","5"],["maxDepth","2"]]},
- {id:"batch",label:"Batch",method:"POST",path:"/v2/batch/scrape",async:"batch/scrape",fields:[["urls","https://example.com\nhttps://example.org",1]]},
- {id:"extract",label:"Extract",method:"POST",path:"/v2/extract",fields:[["urls","https://example.com",1],["prompt","What is this page about?"]]},
- {id:"summarize",label:"Summarize",method:"POST",path:"/v2/summarize",fields:[["url","https://example.com"],["sentences","3"]]},
- {id:"status",label:"Job status",method:"GET",path:"/v2/crawl/:id",fields:[["jobId",""]],raw:b=>`/v2/crawl/${b.jobId}`},
-];
-let curEp=EPS[0],pollTimer=null;
-async function vTester(el){
-  const lastkey=localStorage.getItem("fc_lastkey")||"";
-  el.innerHTML=`<h1>Tester</h1><p class="sub">Run an endpoint with one of your keys.</p>
-  <div class="card"><label>API key</label><input type="text" id="tkey" value="${esc(lastkey)}" placeholder="fc-…"/>
-  <div class="tabs" id="ttabs" style="margin-top:14px"></div><div id="tform"></div>
-  <div class="row"><button id="trun">Run</button><button class="ghost" id="tcurl">Copy as curl</button></div></div>
-  <div class="card" style="margin-top:12px"><h2>Response</h2><div class="meta" id="tmeta">No request yet.</div><div class="poll" id="tpoll"></div><pre class="out" id="tout">—</pre></div>`;
-  const tabs=el.querySelector("#ttabs");
-  const draw=()=>{
-    tabs.innerHTML="";
-    EPS.forEach(e=>{const b=document.createElement("button");b.className="tab"+(e.id===curEp.id?" active":"");b.textContent=e.label;b.onclick=()=>{curEp=e;draw();};tabs.appendChild(b);});
-    const f=el.querySelector("#tform");f.innerHTML="";
-    curEp.fields.forEach(([k,def,ta])=>{f.innerHTML+=`<label>${k}</label>`+(ta?`<textarea id="tf_${k}">${esc(def)}</textarea>`:`<input type="text" id="tf_${k}" value="${esc(def)}"/>`);});
-  };
-  draw();
-  const body=()=>{
-    const o={};
-    curEp.fields.forEach(([k])=>{let v=el.querySelector("#tf_"+k).value;
-      if(k==="formats"){try{o.formats=JSON.parse(v)}catch{o.formats=[{type:"markdown"}]}}
-      else if(k==="urls"){o.urls=v.split("\n").map(s=>s.trim()).filter(Boolean)}
-      else if(["limit","maxDepth","sentences"].includes(k)){const n=Number(v);if(v!=="")o[k]=n}
-      else o[k]=v;});
-    return o;
-  };
-  el.querySelector("#trun").onclick=async()=>{
-    clearInterval(pollTimer);el.querySelector("#tpoll").textContent="";
-    const b=body(),path=curEp.raw?curEp.raw(b):curEp.path;
-    const t0=performance.now();el.querySelector("#trun").disabled=true;
-    try{
-      const opts={method:curEp.method,headers:{"content-type":"application/json",authorization:"Bearer "+el.querySelector("#tkey").value.trim()}};
-      if(curEp.method!=="GET")opts.body=JSON.stringify(b);
-      if(curEp.id==="status"&&!b.jobId)throw new Error("Paste a job ID first.");
-      const r=await fetch(API()+path,opts),j=await r.json().catch(()=>({}));
-      paintT(r.status,Math.round(performance.now()-t0),j,el);
-      if(j&&j.id&&curEp.async)pollT(curEp.async,j.id,el);
-    }catch(e){el.querySelector("#tmeta").innerHTML=`<b class="bad">error</b> — ${esc(e.message)}`;}
-    finally{el.querySelector("#trun").disabled=false;}
-  };
-  el.querySelector("#tcurl").onclick=e=>{
-    const b=body(),path=curEp.raw?curEp.raw(b):curEp.path;
-    cp(curEp.method==="GET"?`curl -s ${API()}${path} -H "Authorization: Bearer $KEY"`:`curl -s -X ${curEp.method} ${API()}${path} -H "content-type: application/json" -H "Authorization: Bearer $KEY" -d '${JSON.stringify(b)}'`,e.target);
-  };
-}
-function paintT(status,ms,j,el){
-  const ok=status>=200&&status<300;
-  el.querySelector("#tmeta").innerHTML=`HTTP <b class="${ok?"ok":"bad"}">${status}</b> · ${ms}ms`;
-  el.querySelector("#tout").textContent=JSON.stringify(j,null,2);
-}
-async function pollT(kind,id,el){
-  const t0=Date.now();
-  pollTimer=setInterval(async()=>{
-    el.querySelector("#tpoll").textContent=`polling ${kind}/${id}… (${Math.round((Date.now()-t0)/1000)}s)`;
-    try{const r=await fetch(`${API()}/v2/${kind}/${id}`,{headers:authH()});const j=await r.json();
-      paintT(r.status,0,j,el);
-      if(["completed","failed","cancelled"].includes(j.status)){clearInterval(pollTimer);el.querySelector("#tpoll").textContent="";}
-    }catch{}
-    if(Date.now()-t0>120000){clearInterval(pollTimer);el.querySelector("#tpoll").textContent="poll timeout";}
-  },2500);
-}
-
-async function vDocs(el){
-  const docs=[
-   ["POST","/v2/scrape","Fetch a page as markdown, HTML, text, or links.",`{"url":"https://example.com","formats":[{"type":"markdown"}]}`],
-   ["POST","/v2/map","Discover URLs from sitemap and homepage.",`{"url":"https://example.com","limit":50}`],
-   ["POST","/v2/search","Keyless web search.",`{"query":"firecrawl","limit":5}`],
-   ["POST","/v2/crawl","Start a crawl. Poll GET /v2/crawl/:id.",`{"url":"https://example.com","limit":20}`],
-   ["POST","/v2/batch/scrape","Scrape many URLs.",`{"urls":["https://a.com","https://b.com"]}`],
-   ["GET","/v2/crawl/:jobId","Job status, data, and errors.",null],
-   ["DELETE","/v2/crawl/:jobId","Cancel a job.",null],
-   ["POST","/v2/extract","Workers AI extraction.",`{"urls":["https://example.com"],"prompt":"..."}`],
-   ["POST","/v2/summarize","Page summary.",`{"url":"https://example.com","sentences":3}`],
-   ["GET","/v2/team/credit-usage","Month usage and limits.",null],
-   ["GET","/dashboard/usage?days=30","Daily totals by endpoint and key.",null],
-   ["POST","/dashboard/users/reset-password","Reset a password (admin). Returns a new invite link.",`{"email":"dev@company.com"}`],
-  ];
-  el.innerHTML=`<h1>Docs</h1><p class="sub">Base URL <span class="mono">${esc(API())}</span> · <span class="mono">Authorization: Bearer fc-…</span></p>
-  <div class="note">JS: <span class="mono">new Firecrawl({apiKey, apiUrl:"${esc(API())}"})</span><br/>Python: <span class="mono">FirecrawlApp(api_key=..., api_url="${esc(API())}")</span></div>
-  <div class="docgrid">${docs.map(([m,p,d,ex])=>`<div class="endpoint"><span class="m ${m}">${m}</span><span class="mono">${p}</span><p class="desc" style="margin:8px 0 0">${d}</p>${ex?`<pre class="out" style="max-height:150px">${esc(ex)}</pre>`:""}</div>`).join("")}</div>
-  <div class="card" style="margin-top:12px"><h2>Error codes</h2>
-  <table><tr><th>code</th><th>http</th><th>meaning</th></tr>
-  ${[["UNAUTHORIZED",401,"missing or invalid key"],["KEY_REVOKED",403,"key revoked"],["RATE_LIMIT",429,"per-key req/min exceeded"],["INSUFFICIENT_CREDITS",402,"monthly cap hit"],["SIGNUP_DISABLED",403,"public signup is off"],["FORBIDDEN",403,"admin only"],["BAD_REQUEST",400,"validation failed"],["SCRAPE_FAILED",422,"target fetch failed"],["NOT_FOUND",404,"job or key unknown"]].map(r=>`<tr><td class="mono">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</table></div>`;
-}
 render();
 </script>
 </body>

@@ -280,7 +280,7 @@ describe("public", () => {
     const res = await req("/");
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type") ?? "").toMatch(/html/);
-    expect(await res.text()).toMatch(/Firecrawl — Dashboard/);
+    expect(await res.text()).toMatch(/Firecrawl Console/);
   });
 
   it("GET /health is public", async () => {
@@ -295,14 +295,47 @@ describe("public", () => {
     expect(j.endpoints).toContain("POST /v2/scrape");
   });
 
-  it("dashboard HTML includes sign-in, invite, and no public signup", () => {
+  it("site HTML keeps sign-in, invites, and no public signup", () => {
     const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
     expect(html).toContain("Sign in");
     expect(html).toContain("There is no public signup");
     expect(html).toContain("/dashboard/users/invite");
     expect(html).toContain("/dashboard/users/reset-password");
     expect(html).not.toContain("Create account");
-    expect(html).toContain("Firecrawl Console");
+  });
+
+  it("landing, docs and playground are public; the console is gated", () => {
+    const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
+    // routes that must not require a token
+    for (const marker of ['r.name==="/"', 'r.name==="/docs"', 'r.name==="/login"']) {
+      expect(html).toContain(marker);
+    }
+    // console pages are the only gated ones
+    expect(html).toContain("const CONSOLE_PAGES");
+    expect(html).toContain("if(isConsole&&!TOKEN())");
+    for (const route of ["/overview", "/keys", "/people"]) {
+      expect(html).toContain(`"${route}":`);
+    }
+    // the playground lives inside the docs page, not on its own route
+    expect(html).toContain('id="playground"');
+    expect(html).not.toContain('"/tester"');
+  });
+
+  it("console shell ships the redesigned chrome (favicon, themes, endpoints)", () => {
+    const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
+    expect(html).toContain('<link rel="icon" href="/favicon.svg"');
+    expect(html).toContain('data-theme="dark"');
+    expect(html).toContain("prefers-color-scheme: dark");
+    expect(html).toContain("prefers-reduced-motion: reduce");
+    for (const id of ["scrape", "crawl", "batch", "map", "search", "extract", "summarize"]) {
+      expect(html).toContain(`id:"${id}"`);
+    }
+    // the em dash is banned in site copy; it is the tell we keep out of the UI
+    expect(html).not.toContain("—");
+
+    const icon = readFileSync(new URL("../public/favicon.svg", import.meta.url), "utf8");
+    expect(icon).toContain("<svg");
+    expect(icon).toContain('viewBox="0 0 32 32"');
   });
 });
 

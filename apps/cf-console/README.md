@@ -1,8 +1,18 @@
-# Firecrawl CF Console (playground UI)
+# Firecrawl CF Console (Pages mirror)
 
-Static single-page console for the Workers API in `../cf-workers`. No build
-step, no framework, no backend — one `index.html` (~15KB). API keys stay in
-the browser's `localStorage`; nothing is sent anywhere except your worker.
+Static single-page console for the Workers API in `../cf-workers`. No build step,
+no framework, no backend. `index.html` here is a byte-for-byte mirror of
+`../cf-workers/public/index.html`, which is the canonical copy served from the
+Worker custom domain. Edit that file, then copy it here.
+
+Sessions and API keys stay in the browser's `localStorage`; nothing is sent
+anywhere except your worker.
+
+## Base URL
+
+The console calls the origin it is served from. On `*.pages.dev` that is not the
+API, so it falls back to the Worker domain (`WORKER_ORIGIN` near the top of the
+script). The control in the header overrides it per browser.
 
 ## Run locally
 
@@ -20,13 +30,10 @@ npx wrangler pages project create firecrawl-cf-console --production-branch main
 npm run deploy
 ```
 
-Point the page at your worker (default is baked in, editable in the UI):
-`https://firecrawl-cf.<you>.workers.dev`
+## Pages
 
-## Tabs
+Landing (`#/`) · Docs with the playground built in (`#/docs`) · Sign in
+(`#/login`) · Console behind auth: Overview, API keys, People.
 
-Scrape · Map · Search · Crawl (auto-poll) · Batch (auto-poll) · Extract ·
-Summarize (template endpoint demo) · Job status · Credits.
-
-Each tab shows the endpoint description, runs live against the worker, prints
-status + latency + JSON, and offers **Copy as curl** plus an SDK snippet.
+The docs and the playground need no account. Only the console routes require a
+session.

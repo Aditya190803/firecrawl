@@ -67,3 +67,7 @@ apps/api/src/lib/scrape-interact/*.md
 vitest.out
 
 tmp/
+apps/cf-workers/node_modules/
+apps/cf-workers/package-lock.json
+apps/cf-workers/.wrangler/
+apps/cf-workers/.dev.vars

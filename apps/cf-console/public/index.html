@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Firecrawl CF — Playground</title>
+<meta name="description" content="Playground console for the free-tier Cloudflare Workers port of the Firecrawl API." />
+<style>
+  :root {
+    --bg: #0a0a0b; --panel: #131316; --panel2: #1a1a1f; --line: #26262c;
+    --text: #f4f4f5; --muted: #a1a1aa; --accent: #ff5c39; --accent2: #ff8a5c;
+    --green: #34d399; --red: #f87171; --amber: #fbbf24; --code: #0d0d10;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
+  a { color: var(--accent2); }
+  header { border-bottom: 1px solid var(--line); background: #0d0d0f;
+    position: sticky; top: 0; z-index: 10; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+  .nav { display: flex; align-items: center; gap: 14px; padding: 14px 0; }
+  .logo { font-weight: 800; font-size: 18px; letter-spacing: -0.02em; }
+  .logo span { color: var(--accent); }
+  .pill { font-size: 12px; border: 1px solid var(--line); border-radius: 999px;
+    padding: 3px 10px; color: var(--muted); }
+  .pill.live { color: var(--green); border-color: #134e3d; }
+  .spacer { flex: 1; }
+  .hero { padding: 44px 0 10px; }
+  .hero h1 { font-size: clamp(28px, 4.5vw, 44px); letter-spacing: -0.03em;
+    margin: 0 0 10px; line-height: 1.1; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p { color: var(--muted); max-width: 640px; margin: 0 0 18px; }
+  .statusbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 12px 14px; margin: 18px 0 26px; }
+  .statusbar input[type=password], .statusbar input[type=text] {
+    background: var(--code); border: 1px solid var(--line); color: var(--text);
+    border-radius: 8px; padding: 8px 10px; font-size: 13px; min-width: 0; }
+  #apiBase { flex: 2 1 280px; }
+  #apiKey { flex: 2 1 220px; }
+  button { cursor: pointer; border: 0; border-radius: 8px; padding: 9px 14px;
+    font-size: 14px; font-weight: 650; background: var(--accent); color: #fff; }
+  button:hover { filter: brightness(1.08); }
+  button.ghost { background: var(--panel2); color: var(--text);
+    border: 1px solid var(--line); }
+  button:disabled { opacity: .55; cursor: wait; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 16px; }
+  .tab { background: var(--panel); border: 1px solid var(--line); color: var(--muted);
+    border-radius: 999px; padding: 8px 16px; font-weight: 650; }
+  .tab.active { background: var(--text); color: #000; border-color: var(--text); }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-bottom: 40px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 18px; }
+  .card h2 { margin: 0 0 4px; font-size: 18px; }
+  .card p.desc { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
+  label { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 4px;
+    text-transform: uppercase; letter-spacing: .06em; }
+  input[type=text], textarea, select { width: 100%; background: var(--code);
+    border: 1px solid var(--line); color: var(--text); border-radius: 8px;
+    padding: 9px 11px; font-size: 14px; font-family: inherit; }
+  textarea { min-height: 88px; resize: vertical; font-family: ui-monospace, monospace; font-size: 13px; }
+  .row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 10px; }
+  pre.out { background: var(--code); border: 1px solid var(--line);
+    border-radius: 8px; padding: 12px; font-size: 12.5px; overflow: auto;
+    max-height: 420px; white-space: pre-wrap; word-break: break-word; margin: 12px 0 0; }
+  .meta { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .meta b.ok { color: var(--green); } .meta b.bad { color: var(--red); }
+  .poll { font-size: 12px; color: var(--amber); }
+  footer { border-top: 1px solid var(--line); color: var(--muted);
+    font-size: 13px; padding: 22px 0 40px; }
+  .kbd { background: var(--panel2); border: 1px solid var(--line); border-radius: 6px;
+    padding: 1px 7px; font-family: ui-monospace, monospace; font-size: 12px; }
+  details.curl { margin-top: 10px; font-size: 12px; color: var(--muted); }
+  details.curl pre { background: var(--code); padding: 10px; border-radius: 8px;
+    border: 1px solid var(--line); overflow: auto; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <div class="logo">🔥 firecrawl<span>-cf</span></div>
+    <div class="pill" id="healthPill">checking…</div>
+    <div class="spacer"></div>
+    <div class="pill">playground</div>
+    <a class="pill" href="#" id="docsLink">API docs</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>API, docs and playground — <em>all in one place.</em></h1>
+    <p>Console for your free-tier Cloudflare Workers port of Firecrawl.
+    Pick an endpoint, run it against your worker, inspect the JSON, copy the
+    <span class="kbd">curl</span> or SDK snippet.</p>
+  </section>
+
+  <section class="statusbar">
+    <input type="text" id="apiBase" placeholder="Worker URL — https://firecrawl-cf.<you>.workers.dev" />
+    <input type="password" id="apiKey" placeholder="API key (Bearer)" />
+    <button class="ghost" id="saveBtn" title="Persist to this browser only">Save</button>
+    <button class="ghost" id="healthBtn">Check health</button>
+  </section>
+
+  <div class="tabs" id="tabs"></div>
+  <section class="grid">
+    <div class="card">
+      <h2 id="formTitle">Scrape</h2>
+      <p class="desc" id="formDesc"></p>
+      <div id="form"></div>
+      <div class="row">
+        <button id="runBtn">Run</button>
+        <button class="ghost" id="codeBtn">Copy as curl</button>
+      </div>
+      <div class="hint" id="formHint"></div>
+      <details class="curl"><summary>SDK snippet</summary><pre id="sdkSnip"></pre></details>
+    </div>
+    <div class="card">
+      <h2>Response</h2>
+      <p class="desc">Status, latency and JSON. Async jobs auto-poll.</p>
+      <div class="meta" id="respMeta">No request yet.</div>
+      <div class="poll" id="pollMsg"></div>
+      <pre class="out" id="out">—</pre>
+    </div>
+  </section>
+
+  <section class="card" style="margin-bottom:40px">
+    <h2>Endpoint map</h2>
+    <p class="desc">Everything this worker serves. Green = free-tier live. Amber = needs Workers AI binding. Grey = hosted-only (501).</p>
+    <div id="epmap" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">Firecrawl CF playground · static page, keys stay in your browser
+  (<span class="kbd">localStorage</span>) · worker: <span id="footBase">—</span></div>
+</footer>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const DEFAULT_BASE = "https://firecrawl-cf.aditya-mer.workers.dev";
+
+const ENDPOINTS = [
+  { id: "scrape", label: "Scrape", method: "POST", path: "/v2/scrape",
+    desc: "Fetch a page → markdown, html, text, links. KV-cached.",
+    hint: "Static pages fly. JS-heavy SPAs need REMOTE_RENDER_URL (see README).",
+    fields: [
+      { k: "url", label: "URL", type: "text", def: "https://example.com" },
+      { k: "formats", label: "Formats (JSON array)", type: "textarea", def: '[{"type":"markdown"},{"type":"links"}]' },
+    ],
+    sdk: b => `await app.scrape(${JSON.stringify(b.url)}, { formats: ["markdown"] });` },
+  { id: "map", label: "Map", method: "POST", path: "/v2/map",
+    desc: "Discover URLs via sitemap.xml + homepage links.",
+    hint: "Bounded, synchronous, 1 credit.",
+    fields: [
+      { k: "url", label: "URL", type: "text", def: "https://example.com" },
+      { k: "limit", label: "Limit", type: "text", def: "50" },
+    ],
+    sdk: b => `await app.map(${JSON.stringify(b.url)});` },
+  { id: "search", label: "Search", method: "POST", path: "/v2/search",
+    desc: "Keyless web search (DDG lite + fallbacks). Optional scrape-back.",
+    hint: "For reliability add SEARCH_PROVIDER=serper + key.",
+    fields: [
+      { k: "query", label: "Query", type: "text", def: "firecrawl web scraping api" },
+      { k: "limit", label: "Limit", type: "text", def: "5" },
+    ],
+    sdk: b => `await app.search(${JSON.stringify(b.query)}, { limit: 5 });` },
+  { id: "crawl", label: "Crawl", method: "POST", path: "/v2/crawl",
+    desc: "Async multi-page crawl. Returns a job id — we auto-poll it.",
+    hint: "Respects robots.txt. Bounded by MAX_CRAWL_PAGES/DEPTH.",
+    async: "crawl", fields: [
+      { k: "url", label: "URL", type: "text", def: "https://example.com" },
+      { k: "limit", label: "Limit", type: "text", def: "5" },
+      { k: "maxDepth", label: "Max depth", type: "text", def: "2" },
+    ],
+    sdk: b => `const job = await app.crawl(${JSON.stringify(b.url)}, { limit: 5 });` },
+  { id: "batch", label: "Batch scrape", method: "POST", path: "/v2/batch/scrape",
+    desc: "Scrape up to 1000 URLs as one async job. Auto-polled.",
+    hint: "One queue message fans out over the URL list.",
+    async: "batch", fields: [
+      { k: "urls", label: "URLs (one per line)", type: "textarea", def: "https://example.com\nhttps://example.org" },
+    ],
+    sdk: () => `await app.batchScrape(["https://example.com"]);` },
+  { id: "extract", label: "Extract", method: "POST", path: "/v2/extract",
+    desc: "Workers AI extraction over scraped markdown. Needs [ai] binding.",
+    hint: "Synchronous on Workers (no polling). 5 credits.",
+    fields: [
+      { k: "urls", label: "URLs (one per line)", type: "textarea", def: "https://example.com" },
+      { k: "prompt", label: "Prompt", type: "text", def: "What is this page about?" },
+    ],
+    sdk: b => `await app.extract(${JSON.stringify([b.urls.split("\n")[0]])}, "${b.prompt}");` },
+  { id: "summarize", label: "Summarize", method: "POST", path: "/v2/summarize",
+    desc: "Template endpoint: extractive summary, AI upgrade if [ai] bound.",
+    hint: "Copy src/routes/summarize.ts to build your own endpoints.",
+    fields: [
+      { k: "url", label: "URL", type: "text", def: "https://example.com" },
+      { k: "sentences", label: "Sentences", type: "text", def: "3" },
+    ],
+    sdk: b => `await fetch(API + "/v2/summarize", { method: "POST", ... , body: JSON.stringify({ url: ${JSON.stringify(b.url)} }) });` },
+  { id: "status", label: "Job status", method: "GET", path: "/v2/crawl/:id",
+    desc: "Poll any crawl/batch job. Paste a job id.",
+    hint: "Crawl and batch share the same D1-backed store.",
+    fields: [ { k: "jobId", label: "Job ID", type: "text", def: "" } ],
+    raw: b => ({ path: `/v2/crawl/${b.jobId}` }),
+    sdk: b => `await app.getCrawlStatus(${JSON.stringify(b.jobId)});` },
+  { id: "credits", label: "Credits", method: "GET", path: "/v2/team/credit-usage",
+    desc: "Monthly usage from the D1 ledger.",
+    hint: "Unlimited unless MONTHLY_CREDIT_LIMIT is set.",
+    fields: [], sdk: () => `await app.getCreditUsage();` },
+];
+
+const EPMAP = [
+  ["POST /v2/scrape", "live"], ["POST /v2/map", "live"], ["POST /v2/search", "live"],
+  ["POST /v2/crawl", "live"], ["POST /v2/batch/scrape", "live"], ["POST /v2/summarize", "live"],
+  ["POST /v2/extract", "ai"], ["POST /v2/agent", "ai"], ["POST /v1/deep-research", "ai"],
+  ["WS /v2/crawl/:id", "off"], ["POST /v2/browser*", "off"], ["POST /v2/parse*", "off"],
+  ["POST /v2/slack/*", "off"], ["/exchange/*", "off"], ["/labs/*", "off"],
+];
+
+let current = ENDPOINTS[0];
+
+function base() { return ($("apiBase").value.trim() || DEFAULT_BASE).replace(/\/$/, ""); }
+function key() { return $("apiKey").value.trim(); }
+function headers() {
+  return { "content-type": "application/json", ...(key() ? { authorization: "Bearer " + key() } : {}) };
+}
+
+function renderTabs() {
+  const t = $("tabs"); t.innerHTML = "";
+  for (const e of ENDPOINTS) {
+    const b = document.createElement("button");
+    b.className = "tab" + (e.id === current.id ? " active" : "");
+    b.textContent = e.label;
+    b.onclick = () => { current = e; renderTabs(); renderForm(); };
+    t.appendChild(b);
+  }
+}
+
+function renderForm() {
+  $("formTitle").textContent = current.label;
+  $("formDesc").textContent = current.desc;
+  $("formHint").textContent = current.hint || "";
+  const f = $("form"); f.innerHTML = "";
+  for (const fld of current.fields) {
+    const lab = document.createElement("label"); lab.textContent = fld.label;
+    let inp;
+    if (fld.type === "textarea") { inp = document.createElement("textarea"); }
+    else { inp = document.createElement("input"); inp.type = "text"; }
+    inp.id = "f_" + fld.k; inp.value = fld.def;
+    f.appendChild(lab); f.appendChild(inp);
+  }
+  $("sdkSnip").textContent = collectBody(true);
+}
+
+function collectBody(forSdk) {
+  const body = {};
+  for (const fld of current.fields) {
+    const v = ($("f_" + fld.k) || {}).value ?? "";
+    if (fld.k === "formats") { try { body.formats = JSON.parse(v); } catch { body.formats = [{ type: "markdown" }]; } }
+    else if (fld.k === "urls") { body.urls = v.split("\n").map(s => s.trim()).filter(Boolean); }
+    else if (["limit", "sentences", "maxDepth"].includes(fld.k)) { body[fld.k] = Number(v) || undefined; }
+    else if (v !== "") body[fld.k] = v;
+  }
+  if (forSdk) return "import Firecrawl from 'firecrawl';\nconst app = new Firecrawl({ apiKey: '<key>', apiUrl: '" + base() + "' });\n" + current.sdk(body);
+  return body;
+}
+
+function resolvedPath(body) {
+  if (current.raw) return current.raw(body).path;
+  return current.path;
+}
+
+async function run() {
+  const body = collectBody(false);
+  const path = resolvedPath(body);
+  const url = base() + path;
+  const started = performance.now();
+  $("runBtn").disabled = true;
+  $("pollMsg").textContent = "";
+  $("respMeta").innerHTML = "…";
+  try {
+    const opts = { method: current.method, headers: headers() };
+    if (current.method !== "GET") opts.body = JSON.stringify(body);
+    if (current.id === "status" && !body.jobId) throw new Error("Paste a job ID first.");
+    let res = await fetch(url, opts);
+    let j = await res.json().catch(() => ({}));
+    const ms = Math.round(performance.now() - started);
+    paint(res.status, ms, j);
+    // auto-poll async jobs
+    if (j && j.id && (current.async || current.id === "crawl" || current.id === "batch")) {
+      const kind = current.id === "batch" ? "batch/scrape" : "crawl";
+      await pollJob(kind, j.id);
+    }
+  } catch (e) {
+    $("respMeta").innerHTML = `<b class="bad">error</b> — ${String(e.message || e)}`;
+    $("out").textContent = String((e && e.stack) || e);
+  } finally {
+    $("runBtn").disabled = false;
+    $("sdkSnip").textContent = collectBody(true);
+  }
+}
+
+async function pollJob(kind, id) {
+  const started = Date.now();
+  while (Date.now() - started < 120000) {
+    await new Promise(r => setTimeout(r, 2500));
+    $("pollMsg").textContent = `polling ${kind}/${id}… (${Math.round((Date.now() - started) / 1000)}s)`;
+    try {
+      const res = await fetch(`${base()}/v2/${kind}/${id}`, { headers: headers() });
+      const j = await res.json();
+      paint(res.status, 0, j, true);
+      if (j.status === "completed" || j.status === "failed" || j.status === "cancelled") {
+        $("pollMsg").textContent = "";
+        return;
+      }
+    } catch { /* keep polling */ }
+  }
+  $("pollMsg").textContent = "poll timeout — check status manually.";
+}
+
+function paint(status, ms, j, isPoll) {
+  const ok = status >= 200 && status < 300;
+  $("respMeta").innerHTML =
+    `HTTP <b class="${ok ? "ok" : "bad"}">${status}</b>` + (ms ? ` · ${ms}ms` : isPoll ? " · polled" : "");
+  $("out").textContent = JSON.stringify(j, null, 2);
+}
+
+function copyCurl() {
+  const body = collectBody(false);
+  const path = resolvedPath(body);
+  const cmd = current.method === "GET"
+    ? `curl -s ${base()}${path} -H "Authorization: Bearer $API_KEY"`
+    : `curl -s -X ${current.method} ${base()}${path} -H "content-type: application/json" -H "Authorization: Bearer $API_KEY" -d '${JSON.stringify(body)}'`;
+  navigator.clipboard.writeText(cmd).then(() => {
+    $("codeBtn").textContent = "Copied!";
+    setTimeout(() => ($("codeBtn").textContent = "Copy as curl"), 1500);
+  });
+}
+
+async function health() {
+  try {
+    const r = await fetch(base() + "/health");
+    const ok = r.ok;
+    $("healthPill").textContent = ok ? "● worker online" : "● worker error";
+    $("healthPill").className = "pill" + (ok ? " live" : "");
+  } catch {
+    $("healthPill").textContent = "● unreachable";
+    $("healthPill").className = "pill";
+  }
+  $("footBase").textContent = base();
+  $("docsLink").href = base() + "/docs";
+}
+
+function renderEpmap() {
+  const colors = { live: "var(--green)", ai: "var(--amber)", off: "var(--muted)" };
+  $("epmap").innerHTML = EPMAP.map(([t, s]) =>
+    `<span class="pill" style="color:${colors[s]}">${t}</span>`).join("");
+}
+
+// init
+$("apiBase").value = localStorage.getItem("fc_base") || DEFAULT_BASE;
+$("apiKey").value = localStorage.getItem("fc_key") || "";
+$("saveBtn").onclick = () => {
+  localStorage.setItem("fc_base", base());
+  localStorage.setItem("fc_key", key());
+  $("saveBtn").textContent = "Saved!";
+  setTimeout(() => ($("saveBtn").textContent = "Save"), 1500);
+  health();
+};
+$("healthBtn").onclick = health;
+$("runBtn").onclick = run;
+$("codeBtn").onclick = copyCurl;
+$("apiBase").addEventListener("input", () => { $("footBase").textContent = base(); });
+renderTabs(); renderForm(); renderEpmap(); health();
+</script>
+</body>
+</html>

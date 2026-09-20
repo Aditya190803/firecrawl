@@ -164,6 +164,17 @@ export const monitorRequestSchema = z
   })
   .passthrough();
 
+// Template for new endpoints: copy this block, rename, adjust fields.
+// 1. add schema here, 2. add handler in src/routes/<name>.ts,
+// 3. mount with v2.post("/<name>", handler) in src/index.ts.
+export const summarizeRequestSchema = z
+  .object({
+    url: urlSchema,
+    sentences: z.number().int().min(1).max(10).default(3),
+  })
+  .passthrough();
+export type SummarizeRequest = z.infer<typeof summarizeRequestSchema>;
+
 export const parseZodError = (e: z.ZodError) => ({
   success: false as const,
   code: "BAD_REQUEST" as const,

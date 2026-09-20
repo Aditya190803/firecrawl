@@ -5,6 +5,7 @@ import { authMiddleware } from "./lib/auth";
 import { scrapeHandler } from "./routes/scrape";
 import { mapHandler } from "./routes/map";
 import { searchHandler } from "./routes/search";
+import { summarizeHandler } from "./routes/summarize";
 import {
   agentStartHandler,
   batchStartHandler,
@@ -196,6 +197,7 @@ v2.all("/research/*", notSupported.researchProxy);
 v2.all("/search/developer/*", notSupported.researchProxy);
 v2.all("/developer/*", notSupported.researchProxy);
 v2.post("/llmstxt", llmsTxtHandler);
+v2.post("/summarize", summarizeHandler);
 
 app.route("/v2", v2);
 

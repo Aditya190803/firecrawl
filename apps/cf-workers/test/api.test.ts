@@ -280,7 +280,7 @@ describe("public", () => {
     const res = await req("/");
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type") ?? "").toMatch(/html/);
-    expect(await res.text()).toMatch(/Firecrawl — Dashboard/);
+    expect(await res.text()).toMatch(/Firecrawl Console/);
   });
 
   it("GET /health is public", async () => {
@@ -303,6 +303,23 @@ describe("public", () => {
     expect(html).toContain("/dashboard/users/reset-password");
     expect(html).not.toContain("Create account");
     expect(html).toContain("Firecrawl Console");
+  });
+
+  it("console shell ships the redesigned chrome (favicon, themes, every section)", () => {
+    const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
+    expect(html).toContain('<link rel="icon" href="/favicon.svg"');
+    expect(html).toContain('data-theme="dark"');
+    expect(html).toContain("prefers-color-scheme: dark");
+    expect(html).toContain("prefers-reduced-motion: reduce");
+    for (const route of ["/overview", "/keys", "/people", "/tester", "/docs"]) {
+      expect(html).toContain(`"${route}":`);
+    }
+    // the em dash is banned in console copy; it is the tell we keep out of the UI
+    expect(html).not.toContain("—");
+
+    const icon = readFileSync(new URL("../public/favicon.svg", import.meta.url), "utf8");
+    expect(icon).toContain("<svg");
+    expect(icon).toContain('viewBox="0 0 32 32"');
   });
 });
 

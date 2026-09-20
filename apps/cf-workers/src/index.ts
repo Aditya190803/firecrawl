@@ -84,7 +84,7 @@ const serveDashboard = async (c: { env: Env; req: { url: string; raw: Request };
     return c.env.ASSETS.fetch(new Request(new URL("/index.html", c.req.url)));
   }
   return c.html(
-    `<!doctype html><html lang="en"><head><meta charset="utf-8"/><title>Firecrawl — Dashboard</title></head><body><p>Dashboard assets are not bound.</p></body></html>`,
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"/><title>Firecrawl Console</title></head><body><p>Console assets are not bound.</p></body></html>`,
   );
 };
 

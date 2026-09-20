@@ -73,3 +73,5 @@ apps/cf-console/node_modules/
 apps/cf-console/package-lock.json
 .wrangler/
 apps/cf-workers/.wrangler/
+apps/cf-console/wrangler.jsonc
+apps/cf-console/.wrangler/

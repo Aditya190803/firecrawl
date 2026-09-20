@@ -1,0 +1,31 @@
+{
+  "name": "firecrawl-cf-workers",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Firecrawl API ported to Cloudflare Workers (100% free-tier: Workers + D1 + KV + Queues + R2).",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:free": "wrangler deploy --compatibility-date 2025-01-01",
+    "db:migrate": "wrangler d1 migrations apply firecrawl-db --remote",
+    "db:migrate:local": "wrangler d1 migrations apply firecrawl-db --local",
+    "keygen": "tsx scripts/keygen.ts",
+    "seed:key": "tsx scripts/seed-key.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "hono": "^4.7.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.135.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0",
+    "wrangler": "^4.0.0"
+  }
+}

@@ -370,3 +370,19 @@ describe("robots", () => {
     expect(isAllowedByRobots(txt, "/private/ok")).toBe(true);
   });
 });
+
+describe("summarize (template endpoint)", () => {
+  it("happy path: extractive summary", async () => {
+    vi.stubGlobal("fetch", (async () => new Response("<html><body><p>First sentence. Second sentence. Third sentence. Fourth.</p></body></html>", { status: 200 })) as any);
+    const res = await req("/v2/summarize", { url: "https://example.com", sentences: 2 });
+    expect(res.status).toBe(200);
+    const j = (await res.json()) as any;
+    expect(j.success).toBe(true);
+    expect(j.data.summary).toContain("First sentence");
+  });
+
+  it("failure path: missing url is 400", async () => {
+    const res = await req("/v2/summarize", {});
+    expect(res.status).toBe(400);
+  });
+});

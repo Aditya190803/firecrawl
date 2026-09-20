@@ -33,7 +33,7 @@ export async function crawlStartHandler(c: C) {
   const parsed = crawlRequestSchema.safeParse(await c.req.json().catch(() => ({})));
   if (!parsed.success) return c.json(parseZodError(parsed.error), 400);
   const body = parsed.data;
-  const credits = await checkCredits(c.env, auth.teamId);
+  const credits = await checkCredits(c.env, auth.teamId, auth.keyMonthlyLimit, auth.keyId);
   if (!credits.ok) {
     return c.json(
       { success: false, code: "INSUFFICIENT_CREDITS", error: "Monthly credit limit reached." },
@@ -60,6 +60,7 @@ export async function crawlStartHandler(c: C) {
     jobId,
     kind: "crawl",
     teamId: auth.teamId,
+    keyId: auth.keyId,
     url: body.url,
     depth: 0,
   } satisfies QueueMessage);
@@ -80,7 +81,7 @@ export async function batchStartHandler(c: C) {
   const parsed = batchScrapeRequestSchema.safeParse(await c.req.json().catch(() => ({})));
   if (!parsed.success) return c.json(parseZodError(parsed.error), 400);
   const body = parsed.data;
-  const credits = await checkCredits(c.env, auth.teamId);
+  const credits = await checkCredits(c.env, auth.teamId, auth.keyMonthlyLimit, auth.keyId);
   if (!credits.ok) {
     return c.json(
       { success: false, code: "INSUFFICIENT_CREDITS", error: "Monthly credit limit reached." },
@@ -98,6 +99,7 @@ export async function batchStartHandler(c: C) {
     jobId,
     kind: "batch",
     teamId: auth.teamId,
+    keyId: auth.keyId,
     urls: body.urls,
   } satisfies QueueMessage);
   return c.json({ success: true as const, id: jobId, url: `/v2/batch/scrape/${jobId}` });
@@ -202,7 +204,7 @@ export async function consumeJob(
         )
           .bind(job.id, url, JSON.stringify({ url: doc.url, markdown: doc.markdown, title: doc.title }))
           .run();
-        await spendCredits(env, job.team_id, "scrape", 1);
+        await spendCredits(env, job.team_id, "scrape", 1, msg.keyId);
       }
       await env.DB.prepare("UPDATE jobs SET completed = completed + 1 WHERE id = ?1")
         .bind(job.id)
@@ -251,7 +253,7 @@ export async function consumeJob(
           depth,
         )
         .run();
-      await spendCredits(env, job.team_id, "scrape", 1);
+      await spendCredits(env, job.team_id, "scrape", 1, msg.keyId);
       // Fan out child links (bounded).
       if (depth < maxDepth) {
         const allowExternal = (req.allowExternalLinks as boolean | undefined) ?? false;
@@ -272,6 +274,7 @@ export async function consumeJob(
             jobId: job.id,
             kind: "crawl",
             teamId: job.team_id,
+            keyId: msg.keyId,
             url: fresh[0],
             depth: depth + 1,
           } satisfies QueueMessage);
@@ -307,6 +310,7 @@ export async function consumeJob(
         jobId: job.id,
         kind: "crawl",
         teamId: job.team_id,
+        keyId: msg.keyId,
         url: next.url,
         depth: next.depth,
       });
@@ -391,7 +395,7 @@ export async function extractStartHandler(c: C) {
     completed: 1,
     credits: 5,
   });
-  await spendCredits(c.env, auth.teamId, "extract", 5);
+  await spendCredits(c.env, auth.teamId, "extract", 5, auth.keyId);
   return c.json({ success: true, id: jobId, data });
 }
 
@@ -438,7 +442,7 @@ export async function agentStartHandler(c: C) {
     completed: 1,
     credits: 5,
   });
-  await spendCredits(c.env, auth.teamId, "agent", 5);
+  await spendCredits(c.env, auth.teamId, "agent", 5, auth.keyId);
   return c.json({ success: true, id: jobId, data: { answer } });
 }
 
@@ -455,7 +459,7 @@ export async function llmsTxtHandler(c: C) {
   if (("error" in doc && doc.error) || !("markdown" in doc)) {
     return c.json({ success: false, code: "SCRAPE_FAILED", error: "Could not fetch page." }, 422);
   }
-  await spendCredits(c.env, auth.teamId, "llmstxt", 1);
+  await spendCredits(c.env, auth.teamId, "llmstxt", 1, auth.keyId);
   return c.json({
     success: true,
     id: jobId,
@@ -489,7 +493,7 @@ export async function deepResearchStartHandler(c: C) {
     messages: [{ role: "user", content: `Research query: ${body.query}\n\nSOURCES:\n${combined}\n\nWrite a concise research summary with key findings.` }],
   });
   const jobId = newId();
-  await spendCredits(c.env, auth.teamId, "deep_research", 10);
+  await spendCredits(c.env, auth.teamId, "deep_research", 10, auth.keyId);
   return c.json({
     success: true,
     id: jobId,

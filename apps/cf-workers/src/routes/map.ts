@@ -34,7 +34,7 @@ export async function mapHandler(c: C) {
   if (!parsed.success) return c.json(parseZodError(parsed.error), 400);
   const body = parsed.data;
 
-  const credits = await checkCredits(c.env, auth.teamId);
+  const credits = await checkCredits(c.env, auth.teamId, auth.keyMonthlyLimit, auth.keyId);
   if (!credits.ok) {
     return c.json(
       { success: false, code: "INSUFFICIENT_CREDITS", error: "Monthly credit limit reached." },
@@ -81,7 +81,7 @@ export async function mapHandler(c: C) {
   }
 
   const links = [...found].slice(0, body.limit).map(url => ({ url }));
-  await spendCredits(c.env, auth.teamId, "map", 1);
+  await spendCredits(c.env, auth.teamId, "map", 1, auth.keyId);
   return c.json({ success: true, links });
 }
 

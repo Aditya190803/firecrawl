@@ -13,7 +13,7 @@ export async function searchHandler(c: C) {
   if (!parsed.success) return c.json(parseZodError(parsed.error), 400);
   const body = parsed.data;
 
-  const credits = await checkCredits(c.env, auth.teamId);
+  const credits = await checkCredits(c.env, auth.teamId, auth.keyMonthlyLimit, auth.keyId);
   if (!credits.ok) {
     return c.json(
       { success: false, code: "INSUFFICIENT_CREDITS", error: "Monthly credit limit reached." },
@@ -64,6 +64,6 @@ export async function searchHandler(c: C) {
     data = await Promise.all(jobs);
   }
 
-  await spendCredits(c.env, auth.teamId, "search", 1);
+  await spendCredits(c.env, auth.teamId, "search", 1, auth.keyId);
   return c.json({ success: true, data });
 }

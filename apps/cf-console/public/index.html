@@ -114,12 +114,10 @@ h1,h2,h3,h4{margin:0;font-weight:500}
 .btn i{font-size:16px}
 .btn:active{transform:scale(.99)}
 .btn[disabled]{opacity:.55;cursor:not-allowed;transform:none}
-.btn-primary{background:#ff4c00;color:#fff;
+.btn-primary{color:#fff;background-color:#ff4c00;background-image:linear-gradient(#ffffff14,#ffffff00);
   box-shadow:inset 0 -6px 12px #f003,0 2px 4px #ff4d001f,0 1px 1px #ff4d001f,0 .5px .5px #ff4d0029,0 .25px .25px #ff4d0033}
-.btn-primary:before{content:"";position:absolute;inset:0;border-radius:inherit;opacity:.06;
-  background:linear-gradient(#fff,#0000);z-index:-1;transition:opacity .2s}
 .btn-primary:hover{box-shadow:inset 0 -6px 12px #f003,0 4px 8px #ff4d0029,0 1px 1px #ff4d001f,0 .5px .5px #ff4d0029,0 .25px .25px #ff4d0033}
-.btn-primary:hover:before{opacity:.12}
+.btn-primary:hover{background-image:linear-gradient(#ffffff26,#ffffff00)}
 .btn-secondary{background:var(--alpha-4);color:var(--accent-black)}
 .btn-secondary:hover{background:var(--alpha-6)}
 .btn-secondary:active{background:var(--alpha-7)}
@@ -306,7 +304,13 @@ footer .legal{margin-top:36px;padding-top:20px;border-top:1px solid var(--border
 .side a[aria-current="page"]{background:var(--heat-8);color:var(--heat-100)}
 .side .who{margin-top:auto;border-top:1px solid var(--border-faint);padding-top:14px;display:flex;flex-direction:column;gap:10px}
 .side .who .mail{font-size:12px;color:var(--alpha-56);word-break:break-all}
-.main{padding:28px 32px 72px;max-width:1180px;min-width:0}
+.main{padding:32px 32px 80px;min-width:0}
+.main .inner{max-width:1000px}
+.pagehead{display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:28px}
+.pagehead .lbl{font-family:var(--mono);font-size:12px;color:var(--heat-100);margin-bottom:8px}
+.pagehead h1{margin-bottom:8px}
+.pagehead .acts{margin-left:auto;display:flex;gap:8px}
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:24px}
 .head .acts{margin-left:auto;display:flex;gap:8px}
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--border-faint);
@@ -316,15 +320,27 @@ footer .legal{margin-top:36px;padding-top:20px;border-top:1px solid var(--border
 .stats .k i{font-size:14px;color:var(--alpha-32)}
 .stats .v{font-family:var(--mono);font-size:26px;font-weight:500;letter-spacing:-.4px;margin-top:8px;font-variant-numeric:tabular-nums}
 .stats .s{font-size:12px;color:var(--alpha-40);margin-top:2px}
-.panel{background:var(--surface);border:1px solid var(--border-faint);border-radius:16px;overflow:hidden}
+.panel{background:var(--surface);border:1px solid var(--border-faint);border-radius:16px;overflow:hidden;position:relative}
+.panel.ticks:before{top:0;left:0}
+.panel.ticks:after{top:0;right:0}
+.panel.ticks>.tick:before{bottom:0;left:0}
+.panel.ticks>.tick:after{bottom:0;right:0}
+.side h4{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--alpha-40);margin:14px 0 6px;padding:0 10px}
+.side h4:first-child{margin-top:0}
+.who .me{display:flex;align-items:center;gap:8px}
+.av{width:22px;height:22px;border-radius:999px;background:var(--heat-12);color:var(--heat-100);display:grid;
+  place-items:center;font-size:11px;font-weight:600;flex-shrink:0}
+.person{display:inline-flex;align-items:center;gap:8px}
+.cellinput{width:88px;padding:6px 8px;font-family:var(--mono);font-size:13px;border-radius:8px}
 .panel + .panel{margin-top:16px}
-.panel .ph{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border-faint)}
-.panel .ph .note{margin-left:auto;font-size:12px;color:var(--alpha-40)}
+.panel .phd{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border-faint)}
+.panel .phd .note{margin-left:auto;font-size:12px;color:var(--alpha-40);display:flex;align-items:center;gap:8px}
+.panel .phd .ico{color:var(--alpha-32);font-size:16px}
 .panel .pb{padding:18px}
 .cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
 .cols.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{text-align:left;font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--alpha-40);padding:10px 18px;
+th{text-align:left;font-size:12px;font-weight:500;color:var(--alpha-48);padding:11px 18px;letter-spacing:.02em;
   border-bottom:1px solid var(--border-faint);background:var(--background-lighter)}
 td{padding:12px 18px;border-bottom:1px solid var(--border-faint)}
 tbody tr:last-child td{border-bottom:0}
@@ -1045,20 +1061,27 @@ function vInvite(token){
 function consoleChrome(inner){
   const here=parseRoute().name;
   const links=Object.entries(CONSOLE_PAGES).filter(([,p])=>!p.admin||ROLE()==="admin");
+  const initial=(EMAIL()||"?").slice(0,1).toUpperCase();
   return `<header class="top">
     ${logo()}<span class="tag" style="margin-left:-2px">Console</span>
     <div class="right">
       <span class="host" title="API base URL"><span class="dot" id="pulse"></span><b id="pulsetxt">${esc(API().replace(/^https?:\/\//,""))}</b></span>
       ${themeBtn()}
       <button class="btn btn-ghost btn-icon" id="baseBtn" title="Change API base URL" aria-label="Change API base URL"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i></button>
+      <a class="btn btn-secondary btn-sm" href="#/"><i class="ph ph-arrow-square-out" aria-hidden="true"></i>Site</a>
     </div>
   </header>
   <div class="layout">
     <nav class="side" aria-label="Console">
+      <h4>Workspace</h4>
       ${links.map(([path,p])=>`<a href="#${path}" ${here===path?'aria-current="page"':""}><i class="ph ${p.icon}" aria-hidden="true"></i>${p.title}</a>`).join("")}
+      <h4>Build</h4>
       <a href="#/docs"><i class="ph ph-book-open-text" aria-hidden="true"></i>Docs</a>
-      <div class="who"><span class="mail">${esc(EMAIL())}</span>
-        <button class="btn btn-ghost btn-sm" id="outBtn"><i class="ph ph-sign-out" aria-hidden="true"></i>Log out</button></div>
+      <a href="#/docs#playground"><i class="ph ph-play-circle" aria-hidden="true"></i>Playground</a>
+      <div class="who">
+        <div class="me"><span class="av">${esc(initial)}</span><span class="mail">${esc(EMAIL())}</span></div>
+        <button class="btn btn-ghost btn-sm" id="outBtn"><i class="ph ph-sign-out" aria-hidden="true"></i>Log out</button>
+      </div>
     </nav>
     <main class="main" id="view">${inner}</main>
   </div>`;
@@ -1072,13 +1095,22 @@ function wireConsole(){
     if(v.trim())localStorage.setItem("fc_base",v.trim());else localStorage.removeItem("fc_base");
     render();
   };
-  const d=$("#pulse");
-  if(d)fetch(API()+"/health").then(r=>{d.className="dot "+(r.ok?"up":"down");}).catch(()=>{d.className="dot down";});
+  pulse();
 }
+
+/* shared console pieces, same design language as the public pages */
+const pageHead=(label,title,desc,acts="")=>`<div class="pagehead">
+  <div><div class="lbl">${esc(label)}</div><h1 class="t-h4">${esc(title)}</h1><p class="body-large">${esc(desc)}</p></div>
+  ${acts?`<div class="acts">${acts}</div>`:""}
+</div>`;
+const panel=(title,body,note="",icon="")=>`<section class="panel ticks">${ticks()}
+  <div class="phd">${icon?`<i class="ph ${icon} ico" aria-hidden="true"></i>`:""}<b class="label-medium">${title}</b>
+    ${note?`<span class="note">${note}</span>`:""}</div>${body}</section>`;
+const emptyState=(icon,title,body)=>`<div class="empty"><i class="ph ${icon}" aria-hidden="true"></i><b>${esc(title)}</b><p>${esc(body)}</p></div>`;
 
 function areaChart(daily){
   const pts=(daily||[]).map(d=>d.credits);
-  if(!pts.length)return `<div class="empty"><i class="ph ph-chart-line" aria-hidden="true"></i><b>No traffic yet</b><p>Run a request from the playground and the daily curve shows up here.</p></div>`;
+  if(!pts.length)return emptyState("ph-chart-line","No traffic yet","Run a request from the playground and the daily curve shows up here.");
   const w=600,h=148,pad=6,max=Math.max(1,...pts);
   const x=i=>pts.length===1?w/2:pad+i*(w-pad*2)/(pts.length-1);
   const y=v=>h-pad-(v/max)*(h-pad*2);
@@ -1101,74 +1133,82 @@ const jobTag=s=>s==="completed"?`<span class="tag ok">completed</span>`
 async function vOverview(el){
   const [{j:me},{j:usage},{j:jobs}]=await Promise.all([
     api("/dashboard/auth/me"),api("/dashboard/usage?days=30"),api("/dashboard/jobs?limit=15")]);
-  if(!me.success){el.innerHTML=`<div class="callout err"><i class="ph ph-warning-circle" aria-hidden="true"></i><span>${esc(me.error||"Could not load your account.")}</span></div>`;return;}
+  if(!me.success){el.innerHTML=`<div class="inner"><div class="callout err"><i class="ph ph-warning-circle" aria-hidden="true"></i><span>${esc(me.error||"Could not load your account.")}</span></div></div>`;return;}
   if(me.data.role)localStorage.setItem("fc_role",me.data.role);
   const d=me.data,u=usage.success?usage.data:{total:{credits:0,requests:0},daily:[],byEndpoint:[],byKey:[]};
   const list=jobs.success?jobs.data:[];
   const running=list.filter(x=>x.status==="queued"||x.status==="active").length;
-  el.innerHTML=`
-  <div class="head">
-    <div><h1 class="t-h5">Overview</h1><p class="body-medium">Team <span class="mono">${esc((d.teamId||"").slice(0,8))}</span> over the last 30 days.</p></div>
-    <div class="acts"><a class="btn btn-secondary" href="#/docs#playground"><i class="ph ph-play-circle" aria-hidden="true"></i>Open playground</a></div>
-  </div>
+  el.innerHTML=`<div class="inner">
+  ${pageHead("Workspace","Overview","Team "+(d.teamId||"").slice(0,8)+" over the last 30 days.",
+    `<a class="btn btn-secondary" href="#/keys"><i class="ph ph-key" aria-hidden="true"></i>API keys</a>
+     <a class="btn btn-primary" href="#/docs#playground"><i class="ph ph-play-circle" aria-hidden="true"></i>Playground</a>`)}
   <div class="stats">
     <div class="cell"><div class="k"><i class="ph ph-coins" aria-hidden="true"></i>Credits</div><div class="v">${u.total.credits}</div><div class="s">last 30 days</div></div>
     <div class="cell"><div class="k"><i class="ph ph-arrows-left-right" aria-hidden="true"></i>Requests</div><div class="v">${u.total.requests}</div><div class="s">last 30 days</div></div>
     <div class="cell"><div class="k"><i class="ph ph-calendar-blank" aria-hidden="true"></i>This month</div><div class="v">${d.creditsUsedMonth}</div><div class="s">${d.creditsLimit?"cap "+d.creditsLimit:"no cap set"}</div></div>
     <div class="cell"><div class="k"><i class="ph ph-spinner-gap" aria-hidden="true"></i>Active jobs</div><div class="v">${running}</div><div class="s">queued or running</div></div>
   </div>
-  <div class="cols">
-    <section class="panel"><div class="ph"><b class="label-medium">Daily credits</b><span class="note">hover a day for the exact count</span></div>
-      <div class="pb">${areaChart(u.daily)}</div></section>
-    <section class="panel"><div class="ph"><b class="label-medium">By endpoint</b></div>
-      ${(u.byEndpoint||[]).length?`<table><thead><tr><th>endpoint</th><th>requests</th><th>credits</th></tr></thead><tbody>
+  <div class="cols" style="margin-top:16px">
+    ${panel("Daily credits",`<div class="pb">${areaChart(u.daily)}</div>`,"hover a day for the count","ph-chart-line-up")}
+    ${panel("By endpoint",(u.byEndpoint||[]).length
+      ?`<table><thead><tr><th>Endpoint</th><th>Requests</th><th>Credits</th></tr></thead><tbody>
         ${u.byEndpoint.map(x=>`<tr><td class="mono">${esc(x.endpoint)}</td><td class="num">${x.requests}</td><td class="num">${x.credits}</td></tr>`).join("")}
-      </tbody></table>`:`<div class="empty"><i class="ph ph-list-dashes" aria-hidden="true"></i><b>Nothing recorded</b><p>Endpoint totals appear after your first authenticated call.</p></div>`}
-    </section>
+      </tbody></table>`
+      :emptyState("ph-list-dashes","Nothing recorded","Endpoint totals appear after your first authenticated call."),"","ph-list-dashes")}
   </div>
-  <section class="panel" style="margin-top:16px"><div class="ph"><b class="label-medium">Usage by key</b><a class="note" href="#/keys">Manage keys</a></div>
-    ${(u.byKey||[]).length?`<table><thead><tr><th>key</th><th>requests</th><th>credits</th></tr></thead><tbody>
+  <div style="margin-top:16px">${panel("Usage by key",(u.byKey||[]).length
+    ?`<table><thead><tr><th>Key</th><th>Requests</th><th>Credits</th></tr></thead><tbody>
       ${u.byKey.map(x=>`<tr><td>${esc(x.name)}<span class="sub2 mono">${esc(x.prefix)}</span></td><td class="num">${x.requests}</td><td class="num">${x.credits}</td></tr>`).join("")}
-    </tbody></table>`:`<div class="empty"><i class="ph ph-key" aria-hidden="true"></i><b>No key traffic yet</b><p>Create a key, then call the API with it to see per-key spend.</p></div>`}
-  </section>
-  <section class="panel"><div class="ph"><b class="label-medium">Recent jobs</b><span class="note">crawl and batch runs</span></div>
-    ${list.length?`<table><thead><tr><th>job</th><th>kind</th><th>status</th><th>progress</th><th>created</th></tr></thead><tbody>
+    </tbody></table>`
+    :emptyState("ph-key","No key traffic yet","Create a key, then call the API with it to see per-key spend."),
+    `<a href="#/keys">Manage keys</a>`,"ph-key")}</div>
+  <div style="margin-top:16px">${panel("Recent jobs",list.length
+    ?`<table><thead><tr><th>Job</th><th>Kind</th><th>Status</th><th>Progress</th><th>Created</th></tr></thead><tbody>
       ${list.map(x=>`<tr><td class="mono">${esc(x.id.slice(0,8))}</td><td>${esc(x.kind)}</td><td>${jobTag(x.status)}</td>
         <td class="num">${x.completed} / ${x.total}</td><td class="mono muted">${shortDate(x.created_at)}</td></tr>`).join("")}
-    </tbody></table>`:`<div class="empty"><i class="ph ph-stack" aria-hidden="true"></i><b>No jobs yet</b><p>Crawls and batch scrapes you start will be listed here with live progress.</p></div>`}
-  </section>`;
+    </tbody></table>`
+    :emptyState("ph-stack","No jobs yet","Crawls and batch scrapes you start are listed here with live progress."),
+    "crawl and batch runs","ph-stack")}</div>
+  </div>`;
 }
 
 async function vKeys(el){
   const {j}=await api("/dashboard/keys");
   const keys=j.success?j.data:[];
-  el.innerHTML=`
-  <div class="head"><div><h1 class="t-h5">API keys</h1><p class="body-medium">Each key carries its own rate limit and monthly cap. The secret is shown once.</p></div></div>
+  const active=keys.filter(k=>k.is_active).length;
+  el.innerHTML=`<div class="inner">
+  ${pageHead("Access","API keys","Every key carries its own rate limit and monthly cap. The secret is shown once, at creation.")}
   <div id="banner"></div>
-  <section class="panel"><div class="ph"><b class="label-medium">Create a key</b></div><div class="pb">
+  ${panel("Create a key",`<div class="pb">
     <div class="cols even">
-      <div class="field"><label for="kname">Name</label><input type="text" id="kname" value="default"/><span class="hint">Where this key will be used, for example "staging worker".</span></div>
+      <div class="field"><label for="kname">Name</label><input type="text" id="kname" value="default"/>
+        <span class="hint">Where the key will be used, for example "staging worker".</span></div>
       <div class="cols even">
-        <div class="field"><label for="krpm">Requests per minute</label><input type="number" id="krpm" value="60" min="1" max="1000"/></div>
-        <div class="field"><label for="kcap">Monthly cap</label><input type="number" id="kcap" value="0" min="0"/><span class="hint">0 means no cap.</span></div>
+        <div class="field"><label for="krpm">Requests per minute</label><input type="number" id="krpm" value="60" min="1" max="1000"/>
+          <span class="hint">1 to 1000.</span></div>
+        <div class="field"><label for="kcap">Monthly cap</label><input type="number" id="kcap" value="0" min="0"/>
+          <span class="hint">0 means no cap.</span></div>
       </div>
     </div>
-    <div class="row"><button class="btn btn-primary" id="kcreate"><i class="ph ph-plus" aria-hidden="true"></i>Create key</button></div>
-  </div></section>
-  <section class="panel"><div class="ph"><b class="label-medium">${keys.length} key${keys.length===1?"":"s"}</b></div>
-    ${keys.length?`<table><thead><tr><th>name</th><th>prefix</th><th>req / min</th><th>monthly cap</th><th>used</th><th>last used</th><th></th></tr></thead><tbody>
+    <div class="toolbar"><button class="btn btn-primary" id="kcreate"><i class="ph ph-plus" aria-hidden="true"></i>Create key</button>
+      <span class="body-small">The secret appears once. Store it before you leave this page.</span></div>
+  </div>`,"","ph-plus-circle")}
+  <div style="margin-top:16px">${panel(keys.length+" key"+(keys.length===1?"":"s"),keys.length
+    ?`<table><thead><tr><th>Name</th><th>Prefix</th><th>Req / min</th><th>Monthly cap</th><th>Used</th><th>Last used</th><th></th></tr></thead><tbody>
     ${keys.map(k=>`<tr>
       <td>${esc(k.name||"")}<span class="sub2 mono">${esc(k.id.slice(0,8))}</span></td>
       <td class="mono">${esc(k.key_prefix)}</td>
-      <td><input type="number" data-k="rpm" data-id="${k.id}" value="${k.rate_limit_per_min}" min="1" max="1000" style="width:82px;padding:6px 8px;font-family:var(--mono);font-size:13px" aria-label="Requests per minute"/></td>
-      <td><input type="number" data-k="cap" data-id="${k.id}" value="${k.monthly_limit}" min="0" style="width:92px;padding:6px 8px;font-family:var(--mono);font-size:13px" aria-label="Monthly cap"/></td>
+      <td><input class="cellinput" type="number" data-k="rpm" data-id="${k.id}" value="${k.rate_limit_per_min}" min="1" max="1000" aria-label="Requests per minute"/></td>
+      <td><input class="cellinput" type="number" data-k="cap" data-id="${k.id}" value="${k.monthly_limit}" min="0" aria-label="Monthly cap"/></td>
       <td class="num">${k.used_month??0}</td>
       <td class="mono muted">${k.last_used_at?shortDate(k.last_used_at):"never"}</td>
       <td style="white-space:nowrap;text-align:right">${k.is_active
         ?`<button class="btn btn-secondary btn-sm" data-act="save" data-id="${k.id}">Save</button> <button class="btn btn-danger btn-sm" data-act="revoke" data-id="${k.id}">Revoke</button>`
         :`<span class="tag bad">revoked</span>`}</td></tr>`).join("")}
-    </tbody></table>`:`<div class="empty"><i class="ph ph-key" aria-hidden="true"></i><b>No keys yet</b><p>Create your first key above, then paste it into the playground or your SDK client.</p></div>`}
-  </section>`;
+    </tbody></table>`
+    :emptyState("ph-key","No keys yet","Create your first key above, then paste it into the playground or an SDK client."),
+    active+" active","ph-key")}</div>
+  </div>`;
 
   $("#kcreate").onclick=async e=>{
     const btn=e.currentTarget;btn.disabled=true;
@@ -1180,8 +1220,10 @@ async function vKeys(el){
       await vKeys(el);
       const slot=$("#banner",el);
       if(slot){
-        slot.innerHTML=`<div class="keyout"><b>Copy this key now. It is not shown again.</b>
-          <code>${esc(j.data.key)}</code><button class="btn btn-secondary btn-sm" id="copyk"><i class="ph ph-copy" aria-hidden="true"></i>Copy key</button></div>`;
+        slot.innerHTML=`<div class="keyout"><b><i class="ph ph-seal-check heat" aria-hidden="true"></i> Copy this key now. It is not shown again.</b>
+          <code>${esc(j.data.key)}</code>
+          <div class="toolbar"><button class="btn btn-primary btn-sm" id="copyk"><i class="ph ph-copy" aria-hidden="true"></i>Copy key</button>
+            <a class="btn btn-secondary btn-sm" href="#/docs#playground">Use it in the playground</a></div></div>`;
         $("#copyk",el).onclick=ev=>copy(j.data.key,ev.currentTarget);
       }
     }finally{btn.disabled=false;}
@@ -1203,36 +1245,42 @@ async function vKeys(el){
 }
 
 async function vPeople(el){
-  if(ROLE()!=="admin"){el.innerHTML=`<div class="callout err"><i class="ph ph-lock-key" aria-hidden="true"></i><span>This section is admin only.</span></div>`;return;}
+  if(ROLE()!=="admin"){el.innerHTML=`<div class="inner"><div class="callout err"><i class="ph ph-lock-key" aria-hidden="true"></i><span>This section is admin only.</span></div></div>`;return;}
   const {j}=await api("/dashboard/users");
   const people=j.success?j.data:[];
-  el.innerHTML=`
-  <div class="head"><div><h1 class="t-h5">People</h1><p class="body-medium">Invite a teammate. They set their own password the first time they open the link.</p></div></div>
+  const pending=people.filter(p=>!p.active).length;
+  el.innerHTML=`<div class="inner">
+  ${pageHead("Team","People","Invite a teammate. They set their own password the first time they open the link.")}
   <div id="banner"></div>
-  <section class="panel"><div class="ph"><b class="label-medium">Invite a teammate</b></div><div class="pb">
-    <div class="field" style="max-width:420px"><label for="iemail">Email</label><input type="email" id="iemail" placeholder="teammate@company.com"/>
+  ${panel("Invite a teammate",`<div class="pb">
+    <div class="field" style="max-width:420px"><label for="iemail">Email</label>
+      <input type="email" id="iemail" placeholder="teammate@company.com"/>
       <span class="hint">You get a link to copy and send. Nothing is emailed yet.</span></div>
-    <div class="row"><button class="btn btn-primary" id="inv"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>Create invite link</button></div>
-  </div></section>
-  <section class="panel"><div class="ph"><b class="label-medium">${people.length} member${people.length===1?"":"s"}</b></div>
-    <table><thead><tr><th>email</th><th>role</th><th>status</th><th></th></tr></thead><tbody>
+    <div class="toolbar"><button class="btn btn-primary" id="inv"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>Create invite link</button>
+      <span class="body-small">A fresh link can be issued at any time.</span></div>
+  </div>`,"","ph-user-plus")}
+  <div style="margin-top:16px">${panel(people.length+" member"+(people.length===1?"":"s"),people.length
+    ?`<table><thead><tr><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>
     ${people.map(p=>`<tr>
-      <td>${esc(p.email)}</td>
+      <td><span class="person"><span class="av">${esc((p.email||"?").slice(0,1).toUpperCase())}</span>${esc(p.email)}</span></td>
       <td><span class="tag${p.role==="admin"?" heat":""}">${esc(p.role)}</span></td>
       <td>${p.active?`<span class="tag ok">active</span>`:`<span class="tag warn">invite pending</span>`}</td>
       <td style="text-align:right;white-space:nowrap">${p.active
         ?`<button class="btn btn-secondary btn-sm" data-reset="${esc(p.email)}">Reset password</button>`
         :`<button class="btn btn-secondary btn-sm" data-re="${esc(p.email)}">New link</button>`}</td>
-    </tr>`).join("")||`<tr><td colspan="4"><div class="empty"><i class="ph ph-users-three" aria-hidden="true"></i><b>Just you so far</b><p>Invite the people who need keys and usage visibility.</p></div></td></tr>`}
-    </tbody></table>
-  </section>`;
+    </tr>`).join("")}
+    </tbody></table>`
+    :emptyState("ph-users-three","Just you so far","Invite the people who need keys and usage visibility."),
+    pending?pending+" pending":"","ph-users-three")}</div>
+  </div>`;
 
   const showLink=async(j,label)=>{
     await vPeople(el);
     const slot=$("#banner",el);
     if(!slot)return;
-    slot.innerHTML=`<div class="keyout"><b>${esc(label)} for ${esc(j.data.email)}, valid until ${esc((j.data.expiresAt||"").slice(0,10))}</b>
-      <code>${esc(j.data.inviteUrl)}</code><button class="btn btn-secondary btn-sm" id="copyk"><i class="ph ph-copy" aria-hidden="true"></i>Copy link</button></div>`;
+    slot.innerHTML=`<div class="keyout"><b><i class="ph ph-link heat" aria-hidden="true"></i> ${esc(label)} for ${esc(j.data.email)}, valid until ${esc((j.data.expiresAt||"").slice(0,10))}</b>
+      <code>${esc(j.data.inviteUrl)}</code>
+      <div class="toolbar"><button class="btn btn-primary btn-sm" id="copyk"><i class="ph ph-copy" aria-hidden="true"></i>Copy link</button></div></div>`;
     $("#copyk",el).onclick=ev=>copy(j.data.inviteUrl,ev.currentTarget);
   };
   const fail=m=>{const s=$("#banner",el);if(s)s.innerHTML=`<div class="callout err"><i class="ph ph-warning-circle" aria-hidden="true"></i><span>${esc(m)}</span></div>`;};

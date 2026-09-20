@@ -12,6 +12,7 @@ export interface Env {
   WORK_QUEUE: Queue;
   WORK_DLQ: Queue;
   AI?: Ai;
+  ASSETS?: Fetcher; // static dashboard in public/
   BROWSER?: Fetcher; // optional: only if user binds Browser Rendering (paid). Unused by default.
 
   MONTHLY_CREDIT_LIMIT?: string;

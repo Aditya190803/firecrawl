@@ -58,5 +58,15 @@ queue = "firecrawl-jobs-dlq"
 [ai]
 binding = "AI"
 
+# Dashboard UI is served from public/ on the Worker custom domain
+# (https://firecrawl.adityamer.dev). run_worker_first=true so API routes
+# never get shadowed by index.html. html_handling=none so /index.html
+# is not 307'd back to / (which would loop through the Worker).
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+html_handling = "none"
+
 [observability.logs]
 enabled = true

@@ -8,7 +8,7 @@ export interface Env {
   API_KEY?: string;
   DB: D1Database;
   CACHE: KVNamespace;
-  DOCS: R2Bucket;
+  DOCS?: R2Bucket; // optional: enable R2 in the dashboard, then uncomment the r2_buckets block in wrangler.toml
   WORK_QUEUE: Queue;
   WORK_DLQ: Queue;
   AI?: Ai;

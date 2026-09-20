@@ -4,341 +4,399 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Firecrawl on Cloudflare Workers</title>
-<meta name="description" content="A Firecrawl-compatible scrape API running on Cloudflare Workers. Scrape, crawl, map, search, extract, and summarize any site from one endpoint." />
+<meta name="description" content="The web data API to search, scrape, and crawl at scale, running on Cloudflare Workers. Clean markdown for agents, with open docs and a live playground." />
 <meta name="color-scheme" content="light dark" />
-<meta name="theme-color" content="#fbfaf9" media="(prefers-color-scheme: light)" />
-<meta name="theme-color" content="#0c0b0a" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#f9f9f9" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
 <meta property="og:title" content="Firecrawl on Cloudflare Workers" />
-<meta property="og:description" content="Scrape, crawl, map, search, extract, and summarize any site from one endpoint. Docs and playground are open, no account needed." />
+<meta property="og:description" content="Search, scrape, map, and crawl the web from one API. Docs and playground are open, no account needed." />
 <meta property="og:type" content="website" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="/favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css" />
 <style>
-/* Shape system: panels 14px, controls 10px, pills round. One accent: ember orange.
-   Status colors (ok / bad / warn) carry semantic state only, never decoration. */
+/* Palette, type scale, radii and button treatment follow the Firecrawl design
+   language (heat ramp on #fa5d19, alpha ramps, faint hairlines, 1112px container).
+   Suisse Int'l is proprietary, so Inter stands in for the sans. */
 :root{
-  --bg:#fbfaf9; --bg-soft:#f4f2ef; --panel:#ffffff; --panel-2:#faf9f7;
-  --ink:#171310; --ink-2:#6d655c; --ink-3:#968d83;
-  --line:#e8e3dc; --line-2:#d9d2c9;
-  --accent:#c9400a; --accent-ink:#ffffff; --accent-soft:#fdeee6; --accent-line:#f0b79a;
-  --ok:#16794e; --ok-soft:#e7f4ed; --bad:#c22d1c; --bad-soft:#fdecea; --warn:#8f5c06; --warn-soft:#fbf1dc;
-  --shadow:0 1px 2px rgba(23,19,16,.05), 0 10px 28px -16px rgba(23,19,16,.22);
-  --glow:radial-gradient(58% 70% at 78% 6%, rgba(201,64,10,.13), transparent 70%);
-  --r-panel:14px; --r-ctl:10px;
-  --sans:"Geist","Segoe UI",system-ui,-apple-system,sans-serif;
-  --mono:"Geist Mono","Cascadia Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+  --heat-4:#fa5d190a; --heat-8:#fa5d1914; --heat-12:#fa5d191f; --heat-16:#fa5d1929;
+  --heat-20:#fa5d1933; --heat-24:#fa5d193d; --heat-40:#fa5d1966; --heat-90:#fa5d19e6; --heat-100:#fa5d19;
+  --accent-black:#262626; --accent-white:#ffffff;
+  --surface:#ffffff; --surface-raised:#ffffff;
+  --accent-crimson:#eb3424; --accent-forest:#42c366; --accent-honey:#ecb730; --accent-bluetron:#2a6dfb;
+  --alpha-1:#00000003; --alpha-2:#00000005; --alpha-3:#00000008; --alpha-4:#0000000a;
+  --alpha-5:#0000000d; --alpha-6:#0000000f; --alpha-7:#00000012; --alpha-8:#00000014;
+  --alpha-10:#0000001a; --alpha-12:#0000001f; --alpha-16:#00000029; --alpha-20:#00000033;
+  --alpha-24:#0000003d; --alpha-32:#26262652; --alpha-40:#26262666; --alpha-48:#2626267a;
+  --alpha-56:#2626268f; --alpha-64:#262626a3; --alpha-72:#262626b8; --alpha-88:#262626e0;
+  --border-faint:#ededed; --border-muted:#e8e8e8; --border-loud:#e6e6e6;
+  --background-base:#f9f9f9; --background-lighter:#fbfbfb;
+  --container:1112px;
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",ui-sans-serif,system-ui,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --ease:cubic-bezier(.16,1,.3,1);
-  --head:60px;
+}
+:root[data-theme="dark"],
+html.dark{
+  color-scheme:dark;
+  --accent-black:#f5f5f5; --surface:#171717; --surface-raised:#1f1f1f;
+  --accent-crimson:#f05545; --accent-forest:#5cd47f; --accent-honey:#f0c550; --accent-bluetron:#5a8ffc;
+  --alpha-1:#ffffff03; --alpha-2:#ffffff05; --alpha-3:#ffffff08; --alpha-4:#ffffff0a;
+  --alpha-5:#ffffff0d; --alpha-6:#ffffff0f; --alpha-7:#ffffff12; --alpha-8:#ffffff14;
+  --alpha-10:#ffffff1a; --alpha-12:#ffffff1f; --alpha-16:#ffffff29; --alpha-20:#ffffff33;
+  --alpha-24:#ffffff3d; --alpha-32:#ffffff52; --alpha-40:#ffffff66; --alpha-48:#ffffff7a;
+  --alpha-56:#ffffff8f; --alpha-64:#ffffffa3; --alpha-72:#ffffffb8; --alpha-88:#ffffffe0;
+  --border-faint:#2a2a2a; --border-muted:#333333; --border-loud:#404040;
+  --background-base:#0a0a0a; --background-lighter:#141414;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0c0b0a; --bg-soft:#121110; --panel:#171514; --panel-2:#1c1a18;
-    --ink:#f6f3ef; --ink-2:#a49b91; --ink-3:#7d746a;
-    --line:#282523; --line-2:#36312d;
-    --accent:#ff7a34; --accent-ink:#1a0c04; --accent-soft:#2a1810; --accent-line:#4d2d18;
-    --ok:#3ecf8e; --ok-soft:#10231b; --bad:#ff6f61; --bad-soft:#2a1513; --warn:#e6b45c; --warn-soft:#2a2011;
-    --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.9);
-    --glow:radial-gradient(58% 70% at 78% 6%, rgba(255,122,52,.16), transparent 70%);
+    color-scheme:dark;
+    --accent-black:#f5f5f5; --surface:#171717; --surface-raised:#1f1f1f;
+    --accent-crimson:#f05545; --accent-forest:#5cd47f; --accent-honey:#f0c550; --accent-bluetron:#5a8ffc;
+    --alpha-1:#ffffff03; --alpha-2:#ffffff05; --alpha-3:#ffffff08; --alpha-4:#ffffff0a;
+    --alpha-5:#ffffff0d; --alpha-6:#ffffff0f; --alpha-7:#ffffff12; --alpha-8:#ffffff14;
+    --alpha-10:#ffffff1a; --alpha-12:#ffffff1f; --alpha-16:#ffffff29; --alpha-20:#ffffff33;
+    --alpha-24:#ffffff3d; --alpha-32:#ffffff52; --alpha-40:#ffffff66; --alpha-48:#ffffff7a;
+    --alpha-56:#ffffff8f; --alpha-64:#ffffffa3; --alpha-72:#ffffffb8; --alpha-88:#ffffffe0;
+    --border-faint:#2a2a2a; --border-muted:#333333; --border-loud:#404040;
+    --background-base:#0a0a0a; --background-lighter:#141414;
   }
 }
-:root[data-theme="dark"]{
-  --bg:#0c0b0a; --bg-soft:#121110; --panel:#171514; --panel-2:#1c1a18;
-  --ink:#f6f3ef; --ink-2:#a49b91; --ink-3:#7d746a;
-  --line:#282523; --line-2:#36312d;
-  --accent:#ff7a34; --accent-ink:#1a0c04; --accent-soft:#2a1810; --accent-line:#4d2d18;
-  --ok:#3ecf8e; --ok-soft:#10231b; --bad:#ff6f61; --bad-soft:#2a1513; --warn:#e6b45c; --warn-soft:#2a2011;
-  --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.9);
-  --glow:radial-gradient(58% 70% at 78% 6%, rgba(255,122,52,.16), transparent 70%);
-}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:90px}
+html{scroll-behavior:smooth;scroll-padding-top:120px}
 html,body{margin:0;min-height:100%}
-body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
-h1,h2,h3{margin:0;letter-spacing:-.025em}
+body{background:var(--background-base);color:var(--accent-black);font-family:var(--sans);
+  font-size:14px;line-height:20px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:inherit;text-decoration:none}
 p{margin:0}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+h1,h2,h3,h4{margin:0;font-weight:500}
+:focus-visible{outline:2px solid var(--heat-100);outline-offset:2px;border-radius:6px}
+
+/* type scale */
+.t-h1{font-size:60px;line-height:64px;font-weight:500;letter-spacing:-.3px}
+.t-h2{font-size:36px;line-height:40px;font-weight:500;letter-spacing:-.36px}
+.t-h4{font-size:32px;line-height:36px;font-weight:500;letter-spacing:-.32px}
+.t-h5{font-size:24px;line-height:32px;font-weight:500;letter-spacing:-.24px}
+.t-h6{font-size:18px;line-height:24px;font-weight:500;letter-spacing:-.09px}
+.body-large{font-size:18px;line-height:26px;letter-spacing:-.09px;color:var(--alpha-64)}
+.body-medium{font-size:14px;line-height:20px;letter-spacing:.14px;color:var(--alpha-64)}
+.body-small{font-size:13px;line-height:20px;color:var(--alpha-56)}
+.label-medium{font-size:14px;line-height:20px;font-weight:500}
+.label-small{font-size:13px;line-height:20px;font-weight:500}
+.label-xs{font-size:12px;line-height:20px;font-weight:500}
 .mono,code,pre{font-family:var(--mono)}
-.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono-small{font-family:var(--mono);font-size:13px;line-height:20px;font-weight:500}
+.heat{color:var(--heat-100)}
+.muted{color:var(--alpha-56)}
 
-/* ---------- brand ---------- */
-.brand{display:flex;align-items:center;gap:10px;min-width:0;color:var(--ink)}
-.brand:hover{text-decoration:none}
-.brand .glyph{width:28px;height:28px;border-radius:8px;display:block;flex-shrink:0}
-.brand .name{font-weight:600;font-size:15px;letter-spacing:-.02em;white-space:nowrap}
-.brand .name span{color:var(--ink-3);font-weight:500}
+/* layout rails, the faint hairline grid of the reference design */
+.container{width:min(calc(100% - 32px),var(--container));margin:0 auto;position:relative}
+.rails{position:relative}
+.rails:before,.rails:after{content:"";position:absolute;top:0;bottom:0;width:1px;background:var(--border-faint);pointer-events:none}
+.rails:before{left:0}.rails:after{right:0}
+.hair{height:1px;background:var(--border-faint);width:100%}
+.section{padding:64px 0;border-bottom:1px solid var(--border-faint)}
+.section-head{display:flex;flex-direction:column;gap:12px;margin-bottom:40px}
+.seclabel{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;font-weight:500;color:var(--alpha-40)}
+.seclabel b{color:var(--alpha-56);font-weight:500}
+.seclabel .num{color:var(--heat-100)}
 
-/* ---------- marketing nav ---------- */
-.nav{position:sticky;top:0;z-index:30;height:64px;display:flex;align-items:center;
-  background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-.nav .wrap{display:flex;align-items:center;gap:22px;width:100%}
-.nav .links{display:flex;align-items:center;gap:20px;margin-left:12px}
-.nav .links a{color:var(--ink-2);font-size:14px;font-weight:500}
-.nav .links a:hover{color:var(--ink);text-decoration:none}
-.nav .links a.here{color:var(--ink)}
-.nav .right{margin-left:auto;display:flex;align-items:center;gap:8px}
-
-/* ---------- buttons and inputs ---------- */
-.btn{display:inline-flex;align-items:center;gap:7px;font:inherit;font-weight:500;font-size:14px;cursor:pointer;
-  white-space:nowrap;border:1px solid var(--line-2);background:var(--panel);color:var(--ink);border-radius:var(--r-ctl);
-  padding:9px 14px;transition:background .15s var(--ease),border-color .15s var(--ease),transform .08s var(--ease)}
+/* buttons, matching the reference treatment */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;position:relative;isolation:isolate;
+  font-family:inherit;font-size:14px;line-height:20px;font-weight:500;cursor:pointer;border:0;border-radius:10px;
+  padding:8px 14px;transition:background .15s ease,box-shadow .15s ease,transform .06s ease;white-space:nowrap}
 .btn i{font-size:16px}
-.btn:hover{background:var(--bg-soft);text-decoration:none}
-.btn:active{transform:translateY(1px)}
+.btn:active{transform:scale(.99)}
 .btn[disabled]{opacity:.55;cursor:not-allowed;transform:none}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.btn.primary:hover{background:color-mix(in srgb,var(--accent) 88%,#000)}
-.btn.quiet{background:transparent;border-color:transparent;color:var(--ink-2)}
-.btn.quiet:hover{background:var(--bg-soft);color:var(--ink)}
-.btn.danger{background:transparent;border-color:var(--line-2);color:var(--bad)}
-.btn.danger:hover{background:var(--bad-soft)}
-.btn.sm{padding:6px 10px;font-size:13px}
-.btn.lg{padding:12px 20px;font-size:15px}
-.btn.icon{padding:8px}
-.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
-.field label,.field .flabel,.flabel{font-size:12.5px;font-weight:500;color:var(--ink-2)}
-.field .hint{font-size:12px;color:var(--ink-3)}
+.btn-primary{background:#ff4c00;color:#fff;
+  box-shadow:inset 0 -6px 12px #f003,0 2px 4px #ff4d001f,0 1px 1px #ff4d001f,0 .5px .5px #ff4d0029,0 .25px .25px #ff4d0033}
+.btn-primary:before{content:"";position:absolute;inset:0;border-radius:inherit;opacity:.06;
+  background:linear-gradient(#fff,#0000);z-index:-1;transition:opacity .2s}
+.btn-primary:hover{box-shadow:inset 0 -6px 12px #f003,0 4px 8px #ff4d0029,0 1px 1px #ff4d001f,0 .5px .5px #ff4d0029,0 .25px .25px #ff4d0033}
+.btn-primary:hover:before{opacity:.12}
+.btn-secondary{background:var(--alpha-4);color:var(--accent-black)}
+.btn-secondary:hover{background:var(--alpha-6)}
+.btn-secondary:active{background:var(--alpha-7)}
+.btn-ghost{background:transparent;color:var(--alpha-64)}
+.btn-ghost:hover{background:var(--alpha-4);color:var(--accent-black)}
+.btn-danger{background:var(--alpha-4);color:var(--accent-crimson)}
+.btn-danger:hover{background:var(--alpha-6)}
+.btn-sm{padding:6px 10px;font-size:13px;border-radius:8px}
+.btn-lg{padding:12px 18px;font-size:16px;line-height:24px}
+.btn-icon{padding:8px;border-radius:8px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* surfaces */
+.card{background:var(--surface);border:1px solid var(--border-faint);border-radius:16px;position:relative}
+.card-pad{padding:20px}
+.ticks:before,.ticks:after,.ticks>.tick:before,.ticks>.tick:after{content:"";position:absolute;width:5px;height:5px;
+  border-color:var(--border-loud);border-style:solid;border-width:0;pointer-events:none}
+.ticks:before{top:-1px;left:-1px;border-top-width:1px;border-left-width:1px}
+.ticks:after{top:-1px;right:-1px;border-top-width:1px;border-right-width:1px}
+.ticks>.tick:before{bottom:-1px;left:-1px;border-bottom-width:1px;border-left-width:1px}
+.ticks>.tick:after{bottom:-1px;right:-1px;border-bottom-width:1px;border-right-width:1px}
+.pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border-faint);background:var(--surface);
+  border-radius:999px;padding:4px 4px 4px 12px;font-size:12px;font-weight:500;color:var(--alpha-72);transition:border-color .2s}
+.pill:hover{border-color:var(--alpha-16)}
+.pill .go{width:18px;height:18px;border-radius:999px;background:var(--accent-black);display:grid;place-items:center;
+  color:var(--surface);font-size:11px;transition:background .2s}
+.pill:hover .go{background:var(--heat-100);color:#fff}
+.tag{display:inline-flex;align-items:center;gap:5px;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:500;
+  font-family:var(--mono);background:var(--alpha-4);color:var(--alpha-64)}
+.tag.ok{background:#42c3661f;color:var(--accent-forest)}
+.tag.bad{background:#eb34241f;color:var(--accent-crimson)}
+.tag.warn{background:#ecb7301f;color:var(--accent-honey)}
+.tag.heat{background:var(--heat-12);color:var(--heat-100)}
+.dot{width:6px;height:6px;border-radius:999px;background:var(--alpha-24)}
+.dot.up{background:var(--accent-forest)}.dot.down{background:var(--accent-crimson)}
+
+/* announcement + nav */
+.announce{border-bottom:1px solid var(--border-faint);background:var(--background-lighter)}
+.announce .container{display:flex;align-items:center;justify-content:center;gap:8px;height:40px;
+  font-size:13px;color:var(--alpha-64)}
+.announce b{font-weight:500;color:var(--accent-black)}
+.announce a{color:var(--heat-100);font-weight:500}
+.announce a:hover{text-decoration:underline}
+.nav{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--background-base) 88%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border-faint)}
+.nav .container{display:flex;align-items:center;gap:16px;height:60px}
+.logo{display:flex;align-items:center;gap:8px}
+.logo svg{width:24px;height:24px;display:block}
+.logo b{font-size:15px;font-weight:600;letter-spacing:-.2px}
+.navlinks{display:flex;align-items:center;gap:2px;margin-left:16px}
+.navlinks a{padding:6px 10px;border-radius:8px;font-size:14px;font-weight:500;color:var(--accent-black);transition:background .15s}
+.navlinks a:hover{background:var(--alpha-4)}
+.navlinks a.on{background:var(--alpha-6)}
+.navright{margin-left:auto;display:flex;align-items:center;gap:8px}
+
+/* hero */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--border-faint)}
+.hero:before{content:"";position:absolute;inset:-20% 0 auto;height:560px;pointer-events:none;
+  background:radial-gradient(46% 60% at 50% 0%,var(--heat-16),transparent 72%)}
+.hero .container{padding:56px 0 0;text-align:center;position:relative;padding-bottom:0}
+.hero h1{max-width:18ch;margin:0 auto 16px}
+.hero .lede{max-width:52ch;margin:0 auto}
+.hero .cta{display:flex;justify-content:center;gap:12px;margin-top:28px;flex-wrap:wrap}
+.hero .badge{display:flex;justify-content:center;margin-bottom:20px}
+
+/* hero playground card */
+.play{margin:48px auto -64px;text-align:left;position:relative;z-index:2;box-shadow:0 24px 48px -32px #26262633}
+.play .head{display:flex;align-items:center;gap:4px;padding:10px 12px;border-bottom:1px solid var(--border-faint);flex-wrap:wrap}
+.play .head .tabs{display:flex;gap:2px}
+.play .head .tabs button{font:inherit;font-size:13px;font-weight:500;color:var(--alpha-56);background:transparent;border:0;
+  border-radius:8px;padding:6px 10px;cursor:pointer;transition:background .15s,color .15s}
+.play .head .tabs button:hover{background:var(--alpha-4);color:var(--accent-black)}
+.play .head .tabs button[aria-pressed="true"]{background:var(--alpha-6);color:var(--accent-black)}
+.play .head .live{margin-left:auto;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--alpha-40)}
+.play .bar{display:flex;gap:8px;padding:12px;border-bottom:1px solid var(--border-faint)}
+.play .bar input{flex:1}
+.play .outwrap{position:relative;background:var(--background-lighter);border-radius:0 0 16px 16px;overflow:hidden}
+.code{display:grid;grid-template-columns:44px minmax(0,1fr);font-family:var(--mono);font-size:12.5px;line-height:20px;
+  max-height:300px;overflow:auto}
+.code .gut{padding:12px 0;text-align:right;color:var(--alpha-24);user-select:none;border-right:1px solid var(--border-faint)}
+.code .gut span{display:block;padding-right:10px}
+.code pre{margin:0;padding:12px 14px;white-space:pre-wrap;word-break:break-word;color:var(--alpha-72)}
+.tok-key{color:var(--heat-100)}
+.tok-str{color:var(--accent-forest)}
+.tok-num{color:var(--accent-bluetron)}
+.tok-lit{color:var(--alpha-40)}
+
+/* inputs */
 input[type=text],input[type=password],input[type=email],input[type=number],textarea,select{
-  width:100%;font:inherit;color:var(--ink);background:var(--panel-2);border:1px solid var(--line-2);
-  border-radius:var(--r-ctl);padding:9px 12px;transition:border-color .15s var(--ease),box-shadow .15s var(--ease)}
-input::placeholder,textarea::placeholder{color:var(--ink-3)}
-input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-textarea{min-height:84px;resize:vertical;font-family:var(--mono);font-size:13px;line-height:1.5}
-input.tiny{padding:6px 8px;font-size:13px;font-family:var(--mono)}
+  width:100%;font-family:inherit;font-size:14px;line-height:20px;color:var(--accent-black);background:var(--surface);
+  border:1px solid var(--border-muted);border-radius:10px;padding:8px 12px;transition:border-color .15s,box-shadow .15s}
+input::placeholder,textarea::placeholder{color:var(--alpha-32)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--heat-40);box-shadow:0 0 0 3px var(--heat-8)}
+textarea{min-height:82px;resize:vertical;font-family:var(--mono);font-size:13px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.field label,.flabel{font-size:13px;font-weight:500;color:var(--alpha-64)}
+.field .hint{font-size:12px;color:var(--alpha-40)}
 
-/* ---------- shared surfaces ---------- */
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-panel);box-shadow:var(--shadow)}
-.panel + .panel{margin-top:14px}
-.panel-hd{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line)}
-.panel-hd h2{font-size:14.5px;font-weight:600}
-.panel-hd .note{margin-left:auto;color:var(--ink-3);font-size:12.5px}
-.panel-bd{padding:18px}
-pre.out{margin:0;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-ctl);padding:14px;
-  font-size:12.5px;line-height:1.6;overflow:auto;max-height:420px;white-space:pre-wrap;word-break:break-word}
-.tok-key{color:var(--accent)}.tok-str{color:var(--ok)}.tok-num{color:var(--warn)}.tok-lit{color:var(--ink-3)}
-.verb{font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 7px;border-radius:6px}
-.verb.POST{color:var(--ok);background:var(--ok-soft)}
-.verb.GET{color:var(--accent);background:var(--accent-soft)}
-.verb.DELETE{color:var(--bad);background:var(--bad-soft)}
-.chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;border-radius:999px;
-  padding:3px 9px;border:1px solid var(--line-2);color:var(--ink-2);background:var(--panel-2)}
-.chip.ok{color:var(--ok);background:var(--ok-soft);border-color:transparent}
-.chip.bad{color:var(--bad);background:var(--bad-soft);border-color:transparent}
-.chip.warn{color:var(--warn);background:var(--warn-soft);border-color:transparent}
-.chip.accent{color:var(--accent);background:var(--accent-soft);border-color:transparent}
-.callout{display:flex;gap:10px;border-radius:var(--r-ctl);padding:12px 14px;font-size:13.5px;margin-bottom:14px;line-height:1.5}
-.callout i{font-size:17px;flex-shrink:0;margin-top:1px}
-.callout.err{background:var(--bad-soft);color:var(--bad)}
-.callout.info{background:var(--panel-2);color:var(--ink-2);border:1px solid var(--line)}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--ink-3);flex-shrink:0}
-.dot.up{background:var(--ok)}.dot.down{background:var(--bad)}
+/* feature grid */
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--border-faint);
+  border:1px solid var(--border-faint);border-radius:16px;overflow:hidden}
+.grid3 .cell{background:var(--surface);padding:24px;display:flex;flex-direction:column;gap:10px;transition:background .2s}
+.grid3 .cell:hover{background:var(--background-lighter)}
+.grid3 .cell i{font-size:20px;color:var(--heat-100)}
+.grid3 .cell .k{font-family:var(--mono);font-size:12px;color:var(--alpha-40)}
+.grid3 .cell a{font-size:13px;font-weight:500;color:var(--heat-100);margin-top:auto}
+.grid3 .cell a:hover{text-decoration:underline}
 
-/* ---------- landing ---------- */
-.hero{background-image:var(--glow);padding:72px 0 64px}
-.hero .wrap{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);gap:52px;align-items:center}
-.hero h1{font-size:clamp(34px,4.4vw,56px);line-height:1.05;font-weight:600;max-width:15ch}
-.hero .lede{margin-top:18px;color:var(--ink-2);font-size:17px;line-height:1.55;max-width:46ch}
-.hero .cta{margin-top:28px;display:flex;gap:10px;flex-wrap:wrap}
-.widget{border:1px solid var(--line);border-radius:var(--r-panel);background:var(--panel);box-shadow:var(--shadow);overflow:hidden}
-.widget .bar{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--panel-2)}
-.widget .bar .p{font-family:var(--mono);font-size:12.5px;color:var(--ink-2)}
-.widget .bar .live{margin-left:auto;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--ink-3)}
-.widget .bd{padding:14px}
-.widget .go{display:flex;gap:8px}
-.widget .go input{flex:1}
-.widget pre.out{margin-top:12px;max-height:232px;font-size:12px}
-.section{padding:72px 0;border-top:1px solid var(--line)}
-.section h2{font-size:clamp(25px,2.6vw,33px);font-weight:600;max-width:20ch}
-.section .sub{margin-top:12px;color:var(--ink-2);font-size:16px;max-width:62ch}
-.bento{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin-top:34px}
-.tile{border:1px solid var(--line);border-radius:var(--r-panel);padding:20px;background:var(--panel);
-  display:flex;flex-direction:column;gap:8px;transition:transform .2s var(--ease),border-color .2s var(--ease)}
-.tile:hover{transform:translateY(-2px);border-color:var(--accent-line)}
-.tile i{font-size:22px;color:var(--accent)}
-.tile h3{font-size:16px;font-weight:600}
-.tile p{color:var(--ink-2);font-size:13.5px}
-.tile code{font-size:12px;color:var(--ink-3)}
-.tile.wide{grid-column:span 3}
-.tile.third{grid-column:span 2}
-.tile.tint{background:linear-gradient(150deg,var(--accent-soft),var(--panel) 72%);border-color:var(--accent-line)}
-.tile.ink{background:linear-gradient(150deg,var(--bg-soft),var(--panel) 80%)}
-.tile pre{margin:6px 0 0;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-ctl);
-  padding:10px 12px;font-size:11.5px;overflow:auto;line-height:1.5}
-.tabs{display:flex;gap:6px;flex-wrap:wrap}
-.tabs button{font:inherit;font-size:13px;font-weight:500;cursor:pointer;border-radius:999px;padding:6px 13px;
-  border:1px solid var(--line-2);background:var(--panel);color:var(--ink-2);transition:all .15s var(--ease)}
-.tabs button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
-.facts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:48px;align-items:start}
-.factgroup + .factgroup{margin-top:26px;border-top:1px solid var(--line);padding-top:26px}
-.factgroup h3{font-size:13px;font-weight:600;color:var(--ink-3);margin-bottom:12px}
-.factgroup dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 20px}
-.factgroup dt{font-family:var(--mono);font-size:13px;color:var(--ink)}
-.factgroup dd{margin:0;color:var(--ink-2);font-size:13.5px}
-.band{margin:0 0 72px;padding:44px 36px;border:1px solid var(--accent-line);border-radius:var(--r-panel);
-  background:linear-gradient(135deg,var(--accent-soft),var(--panel) 75%);display:flex;align-items:center;gap:28px;flex-wrap:wrap}
-.band h2{font-size:26px;font-weight:600;max-width:22ch}
-.band p{color:var(--ink-2);margin-top:8px;max-width:54ch}
-.band .btn{margin-left:auto}
-footer{border-top:1px solid var(--line);background:var(--bg-soft);padding:40px 0}
-footer .cols{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr));gap:28px}
-footer h4{font-size:12px;font-weight:600;color:var(--ink-3);margin:0 0 10px}
-footer ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-footer a,footer li{font-size:13.5px;color:var(--ink-2)}
-footer .about{color:var(--ink-2);font-size:13.5px;max-width:34ch;margin-top:12px}
+/* code sample block */
+.sample{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:32px;align-items:center}
+.codecard .head{display:flex;align-items:center;gap:2px;padding:8px 10px;border-bottom:1px solid var(--border-faint)}
+.codecard .head button{font:inherit;font-size:13px;font-weight:500;color:var(--alpha-56);background:transparent;border:0;
+  border-radius:8px;padding:5px 9px;cursor:pointer}
+.codecard .head button:hover{background:var(--alpha-4);color:var(--accent-black)}
+.codecard .head button[aria-pressed="true"]{background:var(--alpha-6);color:var(--accent-black)}
+.codecard .head .cp{margin-left:auto}
 
-/* ---------- docs ---------- */
-.docs{display:grid;grid-template-columns:212px minmax(0,1fr);gap:44px;padding:36px 0 80px}
-.docnav{position:sticky;top:132px;align-self:start;display:flex;flex-direction:column;gap:2px;
-  max-height:calc(100dvh - 160px);overflow:auto}
-.docnav b{font-size:12px;color:var(--ink-3);font-weight:600;margin:14px 0 6px}
-.docnav b:first-child{margin-top:0}
-.docnav a{color:var(--ink-2);font-size:13.5px;padding:6px 10px;border-radius:8px}
-.docnav a:hover{background:var(--bg-soft);color:var(--ink);text-decoration:none}
-.doc h1{font-size:32px;font-weight:600}
-.doc .lede{margin-top:10px;color:var(--ink-2);font-size:16px;max-width:62ch}
-.ep{padding-top:44px;margin-top:44px;border-top:1px solid var(--line)}
-.ep h2{font-size:22px;font-weight:600}
-.ep .sig{display:flex;align-items:center;gap:8px;margin-top:10px;font-family:var(--mono);font-size:13.5px;color:var(--ink-2)}
-.ep .desc{margin-top:12px;color:var(--ink-2);max-width:64ch}
-.ep .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:18px;align-items:start}
-.params{margin-top:18px;border:1px solid var(--line);border-radius:var(--r-panel);overflow:hidden}
-.params .p{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:16px;padding:11px 16px;font-size:13.5px}
-.params .p + .p{border-top:1px solid var(--line)}
-.params .n{font-family:var(--mono);color:var(--ink)}
-.params .n em{font-style:normal;color:var(--ink-3);font-size:12px;display:block;margin-top:2px}
-.params .d{color:var(--ink-2)}
-.try{border:1px solid var(--line);border-radius:var(--r-panel);background:var(--panel-2);padding:16px;margin-top:18px}
-.try .hd{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-.try .hd h3{font-size:13.5px;font-weight:600}
-.try .hd .note{margin-left:auto;font-size:12px;color:var(--ink-3)}
-.keybar{position:sticky;top:64px;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 0}
-.keybar .wrap{display:flex;align-items:center;gap:12px}
-.keybar label{font-size:12.5px;color:var(--ink-2);font-weight:500;white-space:nowrap}
-.keybar input{max-width:360px;font-family:var(--mono);font-size:13px}
-.keybar .state{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-3);font-family:var(--mono)}
+/* limits */
+.limits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--border-faint);
+  border:1px solid var(--border-faint);border-radius:16px;overflow:hidden}
+.limits .cell{background:var(--surface);padding:22px 24px;display:flex;flex-direction:column;gap:6px}
+.limits .cell .k{font-family:var(--mono);font-size:12px;color:var(--heat-100)}
+.limits .cell .v{font-size:18px;font-weight:500;letter-spacing:-.09px}
 
-/* ---------- console ---------- */
-.top{position:sticky;top:0;z-index:30;height:var(--head);display:flex;align-items:center;gap:16px;padding:0 20px;
-  background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
-.top .brand{width:220px}
+/* closing band */
+.band{border:1px solid var(--border-faint);border-radius:20px;background:var(--surface);position:relative;overflow:hidden;
+  padding:48px 40px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.band:before{content:"";position:absolute;inset:auto 0 -60% 0;height:280px;
+  background:radial-gradient(50% 60% at 50% 100%,var(--heat-16),transparent 70%);pointer-events:none}
+
+/* footer */
+footer{padding:48px 0 40px}
+footer .cols{display:grid;grid-template-columns:minmax(0,1.6fr) repeat(3,minmax(0,1fr));gap:32px}
+footer h4{font-size:12px;font-weight:500;color:var(--alpha-40);margin:0 0 12px;font-family:var(--mono)}
+footer ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+footer li a{font-size:13px;color:var(--alpha-64)}
+footer li a:hover{color:var(--accent-black)}
+footer .legal{margin-top:36px;padding-top:20px;border-top:1px solid var(--border-faint);display:flex;gap:12px;
+  flex-wrap:wrap;font-size:12px;color:var(--alpha-40)}
+
+/* docs */
+.keybar{position:sticky;top:60px;z-index:30;background:color-mix(in srgb,var(--background-base) 92%,transparent);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border-faint)}
+.keybar .container{display:flex;align-items:center;gap:12px;height:56px}
+.keybar label{font-size:13px;font-weight:500;color:var(--alpha-64);white-space:nowrap}
+.keybar input{max-width:340px;font-family:var(--mono);font-size:13px}
+.keybar .state{margin-left:auto;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--alpha-40)}
+.docs{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding:40px 0 72px}
+.docnav{position:sticky;top:140px;align-self:start;display:flex;flex-direction:column;gap:1px;max-height:calc(100dvh - 180px);overflow:auto}
+.docnav h4{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--alpha-40);margin:16px 0 6px}
+.docnav h4:first-child{margin-top:0}
+.docnav a{font-size:13.5px;color:var(--alpha-64);padding:6px 10px;border-radius:8px}
+.docnav a:hover{background:var(--alpha-4);color:var(--accent-black)}
+.ep{padding-top:40px;margin-top:40px;border-top:1px solid var(--border-faint)}
+.ep .sig{display:flex;align-items:center;gap:8px;margin-top:10px}
+.ep .desc{margin-top:12px;max-width:64ch}
+.ep .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:20px;align-items:start}
+.params{margin-top:20px;border:1px solid var(--border-faint);border-radius:12px;overflow:hidden;background:var(--surface)}
+.params .p{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:16px;padding:12px 16px}
+.params .p + .p{border-top:1px solid var(--border-faint)}
+.params .n{font-family:var(--mono);font-size:13px}
+.params .n em{font-style:normal;display:block;color:var(--alpha-40);font-size:12px;margin-top:2px}
+.params .d{font-size:13.5px;color:var(--alpha-64)}
+.try{margin-top:20px;border:1px solid var(--border-faint);border-radius:16px;background:var(--surface);overflow:hidden}
+.try .hd{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border-faint)}
+.try .hd .note{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--alpha-40)}
+.try .bd{padding:16px}
+
+/* console */
+.top{position:sticky;top:0;z-index:40;height:60px;display:flex;align-items:center;gap:16px;padding:0 20px;
+  background:color-mix(in srgb,var(--background-base) 88%,transparent);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border-faint)}
 .top .right{margin-left:auto;display:flex;align-items:center;gap:8px}
-.host{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);
-  border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 12px;max-width:340px}
-.host b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.layout{display:grid;grid-template-columns:240px minmax(0,1fr)}
-.side{position:sticky;top:var(--head);height:calc(100dvh - var(--head));border-right:1px solid var(--line);
-  padding:18px 14px;display:flex;flex-direction:column;gap:2px;background:var(--bg-soft)}
-.side a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-ctl);color:var(--ink-2);
-  font-weight:500;font-size:14px;transition:background .15s var(--ease),color .15s var(--ease)}
+.host{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--alpha-56);
+  border:1px solid var(--border-faint);background:var(--surface);border-radius:999px;padding:5px 12px;max-width:320px}
+.host b{font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.layout{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:calc(100dvh - 60px)}
+.side{border-right:1px solid var(--border-faint);padding:16px 12px;display:flex;flex-direction:column;gap:2px;
+  position:sticky;top:60px;height:calc(100dvh - 60px);background:var(--background-lighter)}
+.side a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:14px;font-weight:500;
+  color:var(--alpha-64);transition:background .15s,color .15s}
 .side a i{font-size:17px}
-.side a:hover{background:var(--panel);color:var(--ink);text-decoration:none}
-.side a[aria-current="page"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
-.side .who{margin-top:auto;border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px}
-.side .who .mail{font-size:12.5px;color:var(--ink-2);word-break:break-all;line-height:1.35}
-.main{padding:30px 34px 80px;max-width:1180px;min-width:0}
-.head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px}
-.head h1{font-size:25px;font-weight:600}
-.head p{margin:4px 0 0;color:var(--ink-2);font-size:14px}
+.side a:hover{background:var(--alpha-4);color:var(--accent-black)}
+.side a[aria-current="page"]{background:var(--heat-8);color:var(--heat-100)}
+.side .who{margin-top:auto;border-top:1px solid var(--border-faint);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.side .who .mail{font-size:12px;color:var(--alpha-56);word-break:break-all}
+.main{padding:28px 32px 72px;max-width:1180px;min-width:0}
+.head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:24px}
 .head .acts{margin-left:auto;display:flex;gap:8px}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:14px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-panel);padding:16px 18px;box-shadow:var(--shadow)}
-.stat .k{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2);font-weight:500}
-.stat .k i{font-size:14px;color:var(--ink-3)}
-.stat .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:27px;font-weight:600;letter-spacing:-.03em;margin-top:8px}
-.stat .s{font-size:12px;color:var(--ink-3);margin-top:2px}
-.cols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--border-faint);
+  border:1px solid var(--border-faint);border-radius:16px;overflow:hidden;margin-bottom:16px}
+.stats .cell{background:var(--surface);padding:18px 20px}
+.stats .k{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--alpha-56)}
+.stats .k i{font-size:14px;color:var(--alpha-32)}
+.stats .v{font-family:var(--mono);font-size:26px;font-weight:500;letter-spacing:-.4px;margin-top:8px;font-variant-numeric:tabular-nums}
+.stats .s{font-size:12px;color:var(--alpha-40);margin-top:2px}
+.panel{background:var(--surface);border:1px solid var(--border-faint);border-radius:16px;overflow:hidden}
+.panel + .panel{margin-top:16px}
+.panel .ph{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border-faint)}
+.panel .ph .note{margin-left:auto;font-size:12px;color:var(--alpha-40)}
+.panel .pb{padding:18px}
+.cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
 .cols.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);
-  padding:11px 18px;border-bottom:1px solid var(--line);background:var(--panel-2)}
-td{padding:12px 18px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{text-align:left;font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--alpha-40);padding:10px 18px;
+  border-bottom:1px solid var(--border-faint);background:var(--background-lighter)}
+td{padding:12px 18px;border-bottom:1px solid var(--border-faint)}
 tbody tr:last-child td{border-bottom:0}
-tbody tr:hover td{background:var(--panel-2)}
-.sub2{display:block;color:var(--ink-3);font-size:12px;margin-top:2px}
-.reveal-key{background:var(--panel);border:1px solid var(--accent-line);border-radius:var(--r-panel);padding:16px 18px;margin-bottom:14px}
-.reveal-key b{display:block;font-size:13.5px;margin-bottom:8px}
-.reveal-key code{display:block;font-size:13.5px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r-ctl);
+tbody tr:hover td{background:var(--alpha-2)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.sub2{display:block;font-size:12px;color:var(--alpha-40);margin-top:2px}
+.callout{display:flex;gap:10px;border-radius:12px;padding:12px 14px;font-size:13.5px;margin-bottom:14px;line-height:20px}
+.callout i{font-size:17px;flex-shrink:0}
+.callout.err{background:#eb34241a;color:var(--accent-crimson)}
+.callout.info{background:var(--alpha-3);color:var(--alpha-64);border:1px solid var(--border-faint)}
+.keyout{border:1px solid var(--heat-24);background:var(--heat-4);border-radius:12px;padding:16px;margin-bottom:14px}
+.keyout b{display:block;font-size:13.5px;margin-bottom:10px;font-weight:500}
+.keyout code{display:block;font-size:13px;background:var(--surface);border:1px solid var(--border-faint);border-radius:8px;
   padding:10px 12px;word-break:break-all;margin-bottom:10px}
-.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:38px 20px;color:var(--ink-2)}
-.empty i{font-size:26px;color:var(--ink-3)}
-.empty b{font-weight:600;color:var(--ink);font-size:14px}
-.empty p{font-size:13px;max-width:44ch}
-.sk{background:linear-gradient(90deg,var(--panel-2),var(--bg-soft),var(--panel-2));background-size:200% 100%;border-radius:8px;height:14px}
-.chart{width:100%;height:150px;display:block}
-.chart .ln{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
-.chart .hit:hover{fill:var(--accent-soft)}
-.legend{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);font-family:var(--mono);margin-top:6px}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:36px 20px}
+.empty i{font-size:24px;color:var(--alpha-24)}
+.empty b{font-size:14px;font-weight:500}
+.empty p{font-size:13px;color:var(--alpha-56);max-width:44ch}
+.sk{background:linear-gradient(90deg,var(--alpha-3),var(--alpha-6),var(--alpha-3));background-size:200% 100%;border-radius:8px;height:14px}
+.chart{width:100%;height:148px;display:block}
+.chart .ln{fill:none;stroke:var(--heat-100);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .hit:hover{fill:var(--heat-8)}
+.legend{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11.5px;color:var(--alpha-40);margin-top:8px}
 
-/* ---------- auth ---------- */
-.auth{min-height:calc(100dvh - 64px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr)}
-.auth .pitch{background:var(--bg-soft);border-right:1px solid var(--line);padding:56px 48px;display:flex;
-  flex-direction:column;gap:22px;justify-content:center}
-.auth .pitch h2{font-size:30px;font-weight:600;line-height:1.15;max-width:16ch}
-.auth .pitch ul{margin:0;padding:0;list-style:none;display:grid;gap:12px}
-.auth .pitch li{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink-2)}
-.auth .pitch li i{color:var(--accent);font-size:18px;margin-top:1px}
-.auth .form{display:grid;place-items:center;padding:40px 24px}
-.auth .form .inner{width:min(380px,100%)}
-.auth .form h1{font-size:24px;font-weight:600;margin-bottom:6px}
-.auth .form .lede{color:var(--ink-2);font-size:14px;margin:0 0 22px}
+/* auth */
+.auth{display:grid;place-items:center;padding:72px 16px;min-height:calc(100dvh - 60px)}
+.authbox{width:min(400px,100%)}
+.authbox .top-mark{display:flex;justify-content:center;margin-bottom:20px}
+.authbox h1{text-align:center}
+.authbox .lede{text-align:center;margin-top:8px;margin-bottom:24px}
 
-/* ---------- toast ---------- */
-.toasts{position:fixed;right:18px;bottom:18px;z-index:80;display:flex;flex-direction:column;gap:8px}
-.toast{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line-2);border-radius:var(--r-ctl);
-  box-shadow:var(--shadow);padding:11px 14px;font-size:13.5px;max-width:340px}
+/* toasts */
+.toasts{position:fixed;right:16px;bottom:16px;z-index:90;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border-muted);
+  border-radius:12px;padding:10px 14px;font-size:13.5px;box-shadow:0 8px 24px -12px #00000029;max-width:330px}
 .toast i{font-size:17px}
-.toast.ok i{color:var(--ok)}.toast.bad i{color:var(--bad)}
+.toast.ok i{color:var(--accent-forest)}.toast.bad i{color:var(--accent-crimson)}
 
-/* ---------- motion: hero entry for hierarchy, scroll reveal for structure ---------- */
+/* motion */
 @media (prefers-reduced-motion: no-preference){
-  .rise{animation:rise .55s var(--ease) backwards}
-  .rise.d1{animation-delay:.07s}.rise.d2{animation-delay:.14s}.rise.d3{animation-delay:.21s}
-  [data-reveal]{opacity:0;transform:translateY(16px)}
-  [data-reveal].in{opacity:1;transform:none;transition:opacity .6s var(--ease),transform .6s var(--ease)}
-  .toast{animation:rise .24s var(--ease)}
+  .rise{animation:rise .5s var(--ease) backwards}
+  .rise.d1{animation-delay:.06s}.rise.d2{animation-delay:.12s}.rise.d3{animation-delay:.18s}
+  [data-reveal]{opacity:0;transform:translateY(14px)}
+  [data-reveal].in{opacity:1;transform:none;transition:opacity .55s var(--ease),transform .55s var(--ease)}
+  .toast{animation:rise .2s var(--ease)}
   .sk{animation:sh 1.4s linear infinite}
 }
-@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
 @keyframes sh{to{background-position:-200% 0}}
 
-@media (max-width:1080px){
-  .hero .wrap{grid-template-columns:minmax(0,1fr);gap:36px}
-  .hero h1{max-width:20ch}
-  .facts{grid-template-columns:minmax(0,1fr);gap:28px}
+@media (max-width:995px){
+  :root{--container:100%}
+  .t-h1{font-size:44px;line-height:48px;letter-spacing:-.22px}
+  .t-h2{font-size:28px;line-height:32px}
+  .t-h4{font-size:22px;line-height:26px}
+  .rails:before,.rails:after{display:none}
+  .grid3,.limits{grid-template-columns:minmax(0,1fr)}
+  .sample,.cols,.cols.even,.ep .two{grid-template-columns:minmax(0,1fr);gap:20px}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .cols,.cols.even,.ep .split{grid-template-columns:minmax(0,1fr)}
-  .tile.wide,.tile.third{grid-column:span 3}
-  .docs{grid-template-columns:minmax(0,1fr);gap:24px}
-  .docnav{position:static;flex-direction:row;flex-wrap:wrap;max-height:none;gap:6px}
-  .docnav b{display:none}
-  .docnav a{border:1px solid var(--line);border-radius:999px}
+  .docs{grid-template-columns:minmax(0,1fr);gap:20px;padding-top:24px}
+  .docnav{position:static;flex-direction:row;flex-wrap:wrap;gap:6px;max-height:none}
+  .docnav h4{display:none}
+  .docnav a{border:1px solid var(--border-faint);border-radius:999px}
   footer .cols{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media (max-width:760px){
-  .nav .links{display:none}
-  .hero{padding:48px 0 40px}
-  .section{padding:52px 0}
-  .tile,.tile.wide,.tile.third{grid-column:span 6}
-  .band{flex-direction:column;align-items:flex-start;padding:28px 22px}
-  .band .btn{margin-left:0}
+  .navlinks{display:none}
+  .announce .container{font-size:12px;text-align:center}
   .layout{grid-template-columns:1fr}
-  .top .brand{width:auto}
-  .host{display:none}
-  .side{position:static;height:auto;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px;gap:6px}
+  .side{position:static;height:auto;flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--border-faint)}
   .side .who{margin:0 0 0 auto;border-top:0;padding:0;flex-direction:row;align-items:center}
   .side .who .mail{display:none}
-  .main{padding:22px 16px 64px}
-  .auth{grid-template-columns:1fr}
-  .auth .pitch{display:none}
+  .main{padding:20px 16px 56px}
+  .host{display:none}
   .params .p{grid-template-columns:minmax(0,1fr);gap:4px}
   .keybar .state{display:none}
 }
@@ -355,9 +413,8 @@ tbody tr:hover td{background:var(--panel-2)}
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-/* Served from the Worker custom domain, so the origin is the API. The same file is
-   mirrored on Cloudflare Pages, where the origin is not the API: fall back to the
-   Worker domain there. The console header can point it anywhere. */
+/* Served from the Worker custom domain, so the origin is the API. Mirrored on Pages,
+   where the origin is not the API: fall back to the Worker domain there. */
 const WORKER_ORIGIN="https://firecrawl.adityamer.dev";
 const API=()=>(localStorage.getItem("fc_base")
   ||(/\.pages\.dev$/.test(location.hostname)?WORKER_ORIGIN:window.location.origin)).replace(/\/$/,"");
@@ -365,8 +422,9 @@ const TOKEN=()=>localStorage.getItem("fc_token")||"";
 const ROLE=()=>localStorage.getItem("fc_role")||"";
 const EMAIL=()=>localStorage.getItem("fc_email")||"";
 const KEY=()=>localStorage.getItem("fc_lastkey")||"";
-const GLYPH=`<svg class="glyph" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="fcT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a3d"/><stop offset="1" stop-color="#e2430f"/></linearGradient><linearGradient id="fcC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd9a8"/><stop offset="1" stop-color="#ff7a2f"/></linearGradient></defs><rect width="32" height="32" rx="7.5" fill="url(#fcT)"/><path fill="#fff" d="M17.3 3.4c.5 3.1-.6 5.2-2.6 7.2-2.6 2.5-4.8 4.6-4.8 8.1a6.1 6.1 0 0 0 12.2.3c0-2.6-1.1-4.2-2-5.7.9.2 1.7.7 2.3 1.4.3-3.9-1.7-8.2-5.1-11.3Z"/><path fill="url(#fcC)" d="M16.1 16.1c.6 1.7 2.4 2.4 2.4 4.3a2.8 2.8 0 0 1-5.6.1c0-1.4.8-2.2 1.5-3 .6-.7 1.2-1.4 1.7-1.4Z"/></svg>`;
-const brandLink=(sub="")=>`<a class="brand" href="#/">${GLYPH}<div class="name">Firecrawl${sub?` <span>${esc(sub)}</span>`:""}</div></a>`;
+const MARK=`<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="fcT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a3d"/><stop offset="1" stop-color="#e2430f"/></linearGradient><linearGradient id="fcC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd9a8"/><stop offset="1" stop-color="#ff7a2f"/></linearGradient></defs><rect width="32" height="32" rx="7.5" fill="url(#fcT)"/><path fill="#fff" d="M17.3 3.4c.5 3.1-.6 5.2-2.6 7.2-2.6 2.5-4.8 4.6-4.8 8.1a6.1 6.1 0 0 0 12.2.3c0-2.6-1.1-4.2-2-5.7.9.2 1.7.7 2.3 1.4.3-3.9-1.7-8.2-5.1-11.3Z"/><path fill="url(#fcC)" d="M16.1 16.1c.6 1.7 2.4 2.4 2.4 4.3a2.8 2.8 0 0 1-5.6.1c0-1.4.8-2.2 1.5-3 .6-.7 1.2-1.4 1.7-1.4Z"/></svg>`;
+const logo=()=>`<a class="logo" href="#/">${MARK}<b>Firecrawl</b></a>`;
+const ticks=()=>`<span class="tick"></span>`;
 
 const authH=()=>({"content-type":"application/json",...(TOKEN()?{authorization:"Bearer "+TOKEN()}:{})});
 async function api(path,opts={}){
@@ -393,25 +451,30 @@ function copy(text,btn,label="Copied"){
     if(btn){const o=btn.innerHTML;btn.innerHTML=`<i class="ph ph-check" aria-hidden="true"></i>${label}`;setTimeout(()=>btn.innerHTML=o,1400);}
   }).catch(()=>toast("Clipboard blocked by the browser.","bad"));
 }
-function hi(value){
-  return esc(JSON.stringify(value,null,2))
+function hl(text){
+  return esc(text)
     .replace(/&quot;([^&]*?)&quot;(\s*:)/g,'<span class="tok-key">&quot;$1&quot;</span>$2')
     .replace(/:\s(&quot;.*?&quot;)/g,': <span class="tok-str">$1</span>')
     .replace(/:\s(-?\d+\.?\d*)/g,': <span class="tok-num">$1</span>')
     .replace(/:\s(true|false|null)/g,': <span class="tok-lit">$1</span>');
 }
+/* Code block with a line-number gutter, as on the reference site. */
+function codeBlock(text,highlight=true){
+  const lines=String(text).split("\n");
+  return `<div class="code"><div class="gut">${lines.map((_,i)=>`<span>${i+1}</span>`).join("")}</div>
+    <pre>${highlight?hl(text):esc(text)}</pre></div>`;
+}
+const jsonBlock=v=>codeBlock(JSON.stringify(v,null,2));
 const shortDate=s=>esc(String(s||"").slice(0,16).replace("T"," "));
-const skeleton=rows=>`<div class="panel"><div class="panel-bd">${Array.from({length:rows},(_,i)=>
+const skeleton=n=>`<div class="panel"><div class="pb">${Array.from({length:n},(_,i)=>
   `<div class="sk" style="width:${[92,70,84,58][i%4]}%;margin-bottom:12px"></div>`).join("")}</div></div>`;
 
-/* Reveal sections as they enter the viewport: it shows page structure while scrolling.
-   IntersectionObserver, never a scroll listener, and skipped under reduced motion. */
 let revealObserver=null;
 function wireReveal(){
   if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
   revealObserver?.disconnect();
-  revealObserver=new IntersectionObserver((entries,obs)=>{
-    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");obs.unobserve(e.target);}});
+  revealObserver=new IntersectionObserver((es,obs)=>{
+    es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");obs.unobserve(e.target);}});
   },{threshold:.12});
   $$("[data-reveal]").forEach(el=>revealObserver.observe(el));
 }
@@ -429,21 +492,21 @@ function cycleTheme(){
   applyTheme();render();toast("Theme: "+theme());
 }
 const themeIcon=()=>({system:"ph-circle-half",light:"ph-sun",dark:"ph-moon"})[theme()];
-const themeBtn=()=>`<button class="btn icon quiet" id="themeBtn" title="Theme: ${theme()}" aria-label="Change theme"><i class="ph ${themeIcon()}" aria-hidden="true"></i></button>`;
+const themeBtn=()=>`<button class="btn btn-ghost btn-icon" id="themeBtn" title="Theme: ${theme()}" aria-label="Change theme"><i class="ph ${themeIcon()}" aria-hidden="true"></i></button>`;
 applyTheme();
 
-/* ---------------- endpoint catalog: powers the tiles, the docs, and the playground ---------------- */
+/* ---------------- endpoint catalog ---------------- */
 const EPS=[
-  {id:"scrape",group:"Scraping",title:"Scrape a page",method:"POST",path:"/v2/scrape",icon:"ph-file-text",
-   blurb:"Fetch one page and get markdown, HTML, plain text, or its links.",
+  {id:"scrape",group:"Scraping",title:"Scrape",method:"POST",path:"/v2/scrape",icon:"ph-file-text",
+   blurb:"Get LLM ready data from any page. Markdown, HTML, text, or links.",
    params:[["url","string, required","Absolute URL. A bare host gets https:// added."],
            ["formats","array","Any of markdown, html, rawHtml, text, links, summary."],
            ["onlyMainContent","boolean","Strips navigation and footers. On by default."],
            ["timeout","number","Milliseconds, up to 120000."]],
    form:[["url","text","https://example.com"],["formats","textarea",'[{"type":"markdown"}]']],
    example:{url:"https://example.com",formats:[{type:"markdown"}]}},
-  {id:"crawl",group:"Scraping",title:"Crawl a site",method:"POST",path:"/v2/crawl",icon:"ph-tree-structure",async:"crawl",
-   blurb:"Walk a site from one URL and scrape every page it finds. Returns a job to poll.",
+  {id:"crawl",group:"Scraping",title:"Crawl",method:"POST",path:"/v2/crawl",icon:"ph-tree-structure",async:"crawl",
+   blurb:"Walk a whole site from one URL and scrape every page it finds.",
    params:[["url","string, required","Where the crawl starts."],
            ["limit","number","Maximum pages. Defaults to 100."],
            ["maxDepth","number","Link depth from the start URL. Defaults to 5."],
@@ -451,43 +514,43 @@ const EPS=[
    form:[["url","text","https://example.com"],["limit","number","5"],["maxDepth","number","2"]],
    example:{url:"https://example.com",limit:20,maxDepth:2}},
   {id:"batch",group:"Scraping",title:"Batch scrape",method:"POST",path:"/v2/batch/scrape",icon:"ph-stack",async:"batch/scrape",
-   blurb:"Scrape a list of URLs in one job, with the options a single scrape takes.",
+   blurb:"Scrape a list of URLs in one job with the same options as a scrape.",
    params:[["urls","array, required","Up to 1000 URLs."],
            ["formats","array","Applied to every URL in the batch."],
            ["maxConcurrency","number","Up to 10 pages at a time."]],
    form:[["urls","textarea","https://example.com\nhttps://example.org"]],
    example:{urls:["https://example.com","https://example.org"]}},
-  {id:"map",group:"Discovery",title:"Map a site",method:"POST",path:"/v2/map",icon:"ph-sitemap",
-   blurb:"List the URLs of a site from its sitemap and homepage links, without scraping.",
+  {id:"map",group:"Discovery",title:"Map",method:"POST",path:"/v2/map",icon:"ph-sitemap",
+   blurb:"List every URL on a site from its sitemap and homepage links.",
    params:[["url","string, required","Site to map."],
            ["limit","number","Maximum URLs returned."],
            ["search","string","Keep only URLs containing this text."],
            ["includeSubdomains","boolean","On by default."]],
    form:[["url","text","https://example.com"],["limit","number","10"]],
    example:{url:"https://example.com",limit:50}},
-  {id:"search",group:"Discovery",title:"Search the web",method:"POST",path:"/v2/search",icon:"ph-magnifying-glass",
-   blurb:"Run a web search through the configured provider. DuckDuckGo needs no key.",
+  {id:"search",group:"Discovery",title:"Search",method:"POST",path:"/v2/search",icon:"ph-magnifying-glass",
+   blurb:"Search the web and get full content from the results.",
    params:[["query","string, required","What to search for."],
            ["limit","number","Results to return. Defaults to 10."],
            ["country","string","Two letter country code."],
            ["scrapeOptions","object","Scrape each result as well."]],
    form:[["query","text","firecrawl workers"],["limit","number","5"]],
    example:{query:"firecrawl",limit:5}},
-  {id:"extract",group:"AI",title:"Extract fields",method:"POST",path:"/v2/extract",icon:"ph-brackets-curly",
-   blurb:"Pull structured values out of pages with Workers AI, guided by a prompt.",
+  {id:"extract",group:"AI",title:"Extract",method:"POST",path:"/v2/extract",icon:"ph-brackets-curly",
+   blurb:"Pull structured fields out of pages with Workers AI and a prompt.",
    params:[["urls","array, required","Pages to read. A single url also works."],
            ["prompt","string","What to pull out of each page."],
            ["schema","object","JSON shape the answer should follow."]],
    form:[["urls","textarea","https://example.com"],["prompt","text","What is this page about?"]],
    example:{urls:["https://example.com"],prompt:"Give the product name and price."}},
-  {id:"summarize",group:"AI",title:"Summarize a page",method:"POST",path:"/v2/summarize",icon:"ph-article",
-   blurb:"Short summary of one page. Falls back to an extractive summary when AI is off.",
+  {id:"summarize",group:"AI",title:"Summarize",method:"POST",path:"/v2/summarize",icon:"ph-article",
+   blurb:"Short summary of a page. Falls back to extractive when AI is off.",
    params:[["url","string, required","Page to summarize."],
            ["sentences","number","Between 1 and 10. Defaults to 3."]],
    form:[["url","text","https://example.com"],["sentences","number","3"]],
    example:{url:"https://example.com",sentences:3}},
-  {id:"status",group:"Jobs",title:"Check a job",method:"GET",path:"/v2/crawl/:jobId",icon:"ph-clock-countdown",
-   blurb:"Status, progress, scraped data, and per-page errors for a crawl or batch job.",
+  {id:"status",group:"Jobs",title:"Job status",method:"GET",path:"/v2/crawl/:jobId",icon:"ph-clock-countdown",
+   blurb:"Status, progress, data, and per-page errors for a crawl or batch job.",
    params:[["jobId","string, required","Returned by crawl and batch scrape."]],
    form:[["jobId","text",""]],
    raw:b=>`/v2/crawl/${b.jobId}`,example:null},
@@ -511,7 +574,7 @@ const curlFor=(spec,body)=>{
     : `curl -s -X ${spec.method} ${API()}${spec.path} \\\n  -H "Authorization: Bearer $FIRECRAWL_KEY" \\\n  -H "content-type: application/json" \\\n  -d '${JSON.stringify(body)}'`;
 };
 
-/* ---------------- routing: landing, docs and login are public ---------------- */
+/* ---------------- routing ---------------- */
 const CONSOLE_PAGES={
   "/overview":{title:"Overview",icon:"ph-chart-line-up",view:vOverview},
   "/keys":{title:"API keys",icon:"ph-key",view:vKeys},
@@ -531,13 +594,12 @@ let renderedRoute=null;
 async function render(){
   const r=parseRoute();
   const isConsole=!!CONSOLE_PAGES[r.name];
+  if(isConsole&&!TOKEN()){location.hash="#/login";return;}
+  if(r.name==="/login"&&TOKEN()){location.hash="#/overview";return;}
   if(renderedRoute===r.name&&r.anchor){
     const same=document.getElementById(r.anchor);
     if(same){same.scrollIntoView();return;}
   }
-  if(isConsole&&!TOKEN()){location.hash="#/login";return;}
-  if(r.name==="/login"&&TOKEN()){location.hash="#/overview";return;}
-
   if(r.name==="/"){setTitle("");vLanding();}
   else if(r.name==="/docs"){setTitle("Docs");vDocs();}
   else if(r.name==="/login"){setTitle("Sign in");vLogin();}
@@ -549,42 +611,50 @@ async function render(){
     wireConsole();
     await page.view($("#view"));
   }
-  else {location.hash="#/";return;}
-
+  else{location.hash="#/";return;}
   renderedRoute=r.name;
   wireReveal();
   const target=r.anchor&&document.getElementById(r.anchor);
-  if(target)target.scrollIntoView();
-  else window.scrollTo(0,0);
+  if(target)target.scrollIntoView();else window.scrollTo(0,0);
 }
 window.addEventListener("hashchange",render);
 
 /* ---------------- public chrome ---------------- */
-function siteNav(current){
+function siteHeader(current){
   const right=TOKEN()
-    ? `<a class="btn sm" href="#/overview"><i class="ph ph-gauge" aria-hidden="true"></i>Console</a>`
-    : `<a class="btn sm primary" href="#/login">Sign in</a>`;
-  return `<nav class="nav"><div class="wrap">
-    ${brandLink()}
-    <div class="links">
-      <a href="#/docs" class="${current==="docs"?"here":""}">Docs</a>
-      <a href="#/docs#playground">Playground</a>
-      <a href="#/docs#errors">Errors</a>
-    </div>
-    <div class="right">${themeBtn()}${right}</div>
-  </div></nav>`;
+    ? `<a class="btn btn-secondary btn-sm" href="#/overview"><i class="ph ph-gauge" aria-hidden="true"></i>Console</a>`
+    : `<a class="btn btn-primary btn-sm" href="#/login">Sign in</a>`;
+  return `<div class="announce"><div class="container">
+      <b>Docs and playground are open.</b><span>No account needed to run a request.</span>
+      <a href="#/docs">Open the docs</a>
+    </div></div>
+    <header class="nav"><div class="container">
+      ${logo()}
+      <nav class="navlinks">
+        <a href="#/docs" class="${current==="docs"?"on":""}">Docs</a>
+        <a href="#/docs#playground">Playground</a>
+        <a href="#/docs#errors">Errors</a>
+      </nav>
+      <div class="navright">${themeBtn()}${right}</div>
+    </div></header>`;
 }
 function siteFooter(){
-  return `<footer><div class="wrap cols">
-    <div>${brandLink()}<p class="about">A Firecrawl-compatible scrape API running on Cloudflare Workers, D1, KV, and Queues.</p></div>
-    <div><h4>Endpoints</h4><ul>
-      <li><a href="#/docs#scrape">Scrape</a></li><li><a href="#/docs#crawl">Crawl</a></li>
-      <li><a href="#/docs#map">Map</a></li><li><a href="#/docs#search">Search</a></li></ul></div>
-    <div><h4>Reference</h4><ul>
-      <li><a href="#/docs#auth">Authentication</a></li><li><a href="#/docs#playground">Playground</a></li>
-      <li><a href="#/docs#errors">Error codes</a></li><li><a href="/docs">Machine catalog</a></li></ul></div>
-    <div><h4>Account</h4><ul>
-      <li><a href="#/login">Sign in</a></li><li><a href="/health">Health</a></li></ul></div>
+  return `<div class="hair"></div><footer><div class="container rails" style="padding:0 24px">
+    <div class="cols">
+      <div>${logo()}
+        <p class="body-small" style="margin-top:12px;max-width:34ch">The web data API to search, scrape, and crawl at scale, running on Cloudflare Workers, D1, KV, and Queues.</p>
+      </div>
+      <div><h4>Endpoints</h4><ul>
+        <li><a href="#/docs#scrape">Scrape</a></li><li><a href="#/docs#crawl">Crawl</a></li>
+        <li><a href="#/docs#map">Map</a></li><li><a href="#/docs#search">Search</a></li></ul></div>
+      <div><h4>Reference</h4><ul>
+        <li><a href="#/docs#auth">Authentication</a></li><li><a href="#/docs#playground">Playground</a></li>
+        <li><a href="#/docs#errors">Error codes</a></li><li><a href="/docs">Machine catalog</a></li></ul></div>
+      <div><h4>Account</h4><ul>
+        <li><a href="#/login">Sign in</a></li><li><a href="/health">Health</a></li></ul></div>
+    </div>
+    <div class="legal"><span>Self-hosted Firecrawl on Cloudflare Workers.</span>
+      <a href="https://github.com/firecrawl/firecrawl" target="_blank" rel="noreferrer">Firecrawl is open source.</a></div>
   </div></footer>`;
 }
 function wireSite(){
@@ -593,125 +663,163 @@ function wireSite(){
 async function pulse(){
   const d=$("#pulse"),t=$("#pulsetxt");if(!d)return;
   try{const r=await fetch(API()+"/health");d.className="dot "+(r.ok?"up":"down");if(t)t.textContent=r.ok?"live":"HTTP "+r.status;}
-  catch{d.className="dot down";if(t)t.textContent="unreachable";}
+  catch{d.className="dot down";if(t)t.textContent="offline";}
 }
 
 /* ---------------- landing ---------------- */
-function vLanding(){
-  const tiles=[["scrape","tile wide tint"],["crawl","tile wide ink"],["map","tile third"],
-    ["search","tile third"],["extract","tile third"],["summarize","tile wide"],["batch","tile wide"]];
-  $("#root").innerHTML=`${siteNav()}
-  <header class="hero"><div class="wrap">
-    <div>
-      <h1 class="rise">Any site, clean markdown, one call.</h1>
-      <p class="lede rise d1">A Firecrawl-compatible API on Cloudflare Workers. Scrape, crawl, map, search, extract, and summarize.</p>
-      <div class="cta rise d2">
-        <a class="btn primary lg" href="#/docs">Read the docs</a>
-        <a class="btn lg" href="#/login">Sign in</a>
-      </div>
-    </div>
-    <div class="widget rise d3">
-      <div class="bar"><span class="verb POST">POST</span><span class="p">/v2/scrape</span>
-        <span class="live"><span class="dot" id="pulse"></span><b id="pulsetxt">checking</b></span></div>
-      <div class="bd">
-        <div class="go">
-          <label for="heroUrl" class="sr">URL to scrape</label>
-          <input type="text" id="heroUrl" value="https://example.com" spellcheck="false"/>
-          <button class="btn primary" id="heroRun"><i class="ph ph-play" aria-hidden="true"></i>Run</button>
-        </div>
-        <pre class="out" id="heroOut">This form calls the live API. Add a key in the playground, then run it from here.</pre>
-      </div>
-    </div>
-  </div></header>
+const HERO_TABS=["scrape","crawl","map","search"];
+let heroTab="scrape";
 
-  <section class="section" data-reveal><div class="wrap">
-    <h2>Seven endpoints, one key.</h2>
-    <p class="sub">Each one answers in the Firecrawl v2 response shape, so an existing SDK client works by changing the base URL and nothing else.</p>
-    <div class="bento">
-      ${tiles.map(([id,cls])=>{const e=EP(id);return `<article class="${cls}">
+function vLanding(){
+  const feature=["search","scrape","crawl","map","extract","summarize"];
+  $("#root").innerHTML=`${siteHeader()}
+  <section class="hero"><div class="container rails">
+    <div style="padding:0 24px">
+      <div class="badge rise"><a class="pill" href="#/docs#auth">Free tier only, no paid Cloudflare plan
+        <span class="go"><i class="ph ph-arrow-right" aria-hidden="true"></i></span></a></div>
+      <h1 class="t-h1 rise d1">Power AI agents with <span class="heat">clean web data</span></h1>
+      <p class="body-large lede rise d2">The web data API to search, scrape, and crawl at scale, running on your own Cloudflare Workers.</p>
+      <div class="cta rise d3">
+        <a class="btn btn-primary btn-lg" href="#/docs">Start for free</a>
+        <a class="btn btn-secondary btn-lg" href="#/docs#playground"><i class="ph ph-play-circle" aria-hidden="true"></i>Try the playground</a>
+      </div>
+    </div>
+    <div class="card ticks play rise d3" id="play">${ticks()}
+      <div class="head">
+        <div class="tabs" id="playTabs"></div>
+        <div class="live"><span class="dot" id="pulse"></span><b id="pulsetxt">checking</b></div>
+      </div>
+      <div class="bar">
+        <label class="sr-only" for="playInput" style="position:absolute;left:-9999px">Request input</label>
+        <input type="text" id="playInput" spellcheck="false"/>
+        <button class="btn btn-primary" id="playRun"><i class="ph ph-play" aria-hidden="true"></i>Run</button>
+      </div>
+      <div class="outwrap" id="playOut"></div>
+    </div>
+  </div></section>
+
+  <section class="section" style="padding-top:112px" data-reveal><div class="container rails"><div style="padding:0 24px">
+    <div class="section-head">
+      <div class="seclabel"><span>[ <span class="num">01</span> / 04 ]</span><span>·</span><b>Endpoints</b></div>
+      <h2 class="t-h2">One API for the whole web</h2>
+      <p class="body-large" style="max-width:56ch">Every endpoint answers in the Firecrawl v2 response shape, so an existing client works by changing the base URL and nothing else.</p>
+    </div>
+    <div class="grid3">
+      ${feature.map(id=>{const e=EP(id);return `<article class="cell">
         <i class="ph ${e.icon}" aria-hidden="true"></i>
-        <h3>${esc(e.title)}</h3>
-        <p>${esc(e.blurb)}</p>
-        ${cls.includes("wide")&&e.example?`<pre>${hi(e.example)}</pre>`:`<code>${esc(e.method)} ${esc(e.path)}</code>`}
+        <h3 class="t-h6">${esc(e.title)}</h3>
+        <p class="body-medium">${esc(e.blurb)}</p>
+        <span class="k">${esc(e.method)} ${esc(e.path)}</span>
+        <a href="#/docs#${e.id}">Learn more</a>
       </article>`;}).join("")}
     </div>
-  </div></section>
+  </div></div></section>
 
-  <section class="section" data-reveal><div class="wrap">
-    <h2>Start with three lines.</h2>
-    <p class="sub">Point any Firecrawl client at this host, or call it directly with curl.</p>
-    <div class="panel" style="margin-top:28px">
-      <div class="panel-hd"><div class="tabs" id="qtabs" role="group" aria-label="Language"></div>
-        <button class="btn sm" id="qcopy" style="margin-left:auto"><i class="ph ph-copy" aria-hidden="true"></i>Copy</button></div>
-      <div class="panel-bd"><pre class="out" id="qcode" style="max-height:none"></pre></div>
+  <section class="section" data-reveal><div class="container rails"><div style="padding:0 24px">
+    <div class="sample">
+      <div>
+        <div class="section-head" style="margin-bottom:20px">
+          <div class="seclabel"><span>[ <span class="num">02</span> / 04 ]</span><span>·</span><b>Quickstart</b></div>
+          <h2 class="t-h2">Start scraping today</h2>
+          <p class="body-large">Point any Firecrawl client at this host, or call it with curl. Keys carry their own rate limit and monthly cap.</p>
+        </div>
+        <div class="row"><a class="btn btn-primary" href="#/docs">Read the docs</a>
+          <a class="btn btn-secondary" href="#/login">Sign in</a></div>
+      </div>
+      <div class="card ticks codecard">${ticks()}
+        <div class="head" id="qtabs"></div>
+        <div id="qcode"></div>
+      </div>
     </div>
-  </div></section>
+  </div></div></section>
 
-  <section class="section" data-reveal><div class="wrap facts">
-    <div>
-      <h2>Built to stay on the free tier.</h2>
-      <p class="sub">Workers runs the API, D1 holds keys and jobs, KV caches pages, Queues carries crawls, Workers AI does extraction. Browser rendering is left out on purpose because it needs a paid plan.</p>
+  <section class="section" data-reveal><div class="container rails"><div style="padding:0 24px">
+    <div class="section-head">
+      <div class="seclabel"><span>[ <span class="num">03</span> / 04 ]</span><span>·</span><b>Limits</b></div>
+      <h2 class="t-h2">Built to stay on the free tier</h2>
+      <p class="body-large" style="max-width:56ch">Workers runs the API, D1 holds keys and jobs, KV caches pages, Queues carries crawls, Workers AI does extraction. Browser rendering is left out because it needs a paid plan.</p>
     </div>
-    <div>
-      <div class="factgroup"><h3>Limits you set</h3><dl>
-        <dt>rate limit</dt><dd>Requests per minute, per key.</dd>
-        <dt>monthly cap</dt><dd>Credit ceiling per key, or none at all.</dd>
-        <dt>crawl size</dt><dd>Page and depth ceilings from worker config.</dd>
-      </dl></div>
-      <div class="factgroup"><h3>Access</h3><dl>
-        <dt>docs</dt><dd>Open to everyone, playground included.</dd>
-        <dt>keys</dt><dd>Created in the console, shown once.</dd>
-        <dt>accounts</dt><dd>Invite only. There is no public signup.</dd>
-      </dl></div>
+    <div class="limits">
+      <div class="cell"><span class="k">rate limit</span><span class="v">Per key, per minute</span><p class="body-medium">Set the ceiling on each key from the console, from 1 to 1000.</p></div>
+      <div class="cell"><span class="k">monthly cap</span><span class="v">Credits per key</span><p class="body-medium">Cap a key at a credit budget for the month, or leave it uncapped.</p></div>
+      <div class="cell"><span class="k">crawl size</span><span class="v">Pages and depth</span><p class="body-medium">Worker config bounds how far a crawl can walk from the start URL.</p></div>
+      <div class="cell"><span class="k">accounts</span><span class="v">Invite only</span><p class="body-medium">Docs and playground stay open. Keys and usage need an invite.</p></div>
     </div>
-  </div></section>
+  </div></div></section>
 
-  <div class="wrap"><section class="band" data-reveal>
-    <div><h2>Keys, usage, and limits live in the console.</h2>
-      <p>Issue a key per environment, watch credits by endpoint, and invite the people who need access.</p></div>
-    <a class="btn primary lg" href="#/login">Sign in</a>
-  </section></div>
+  <section class="section" style="border-bottom:0" data-reveal><div class="container rails"><div style="padding:0 24px">
+    <div class="section-head" style="margin-bottom:24px">
+      <div class="seclabel"><span>[ <span class="num">04</span> / 04 ]</span><span>·</span><b>Console</b></div>
+    </div>
+    <div class="band ticks">${ticks()}
+      <h2 class="t-h4">Keys, usage, and teammates in one place</h2>
+      <p class="body-large" style="max-width:48ch">Issue a key per environment, watch credits by endpoint and by key, and invite the people who need access.</p>
+      <a class="btn btn-primary btn-lg" href="#/login">Sign in</a>
+    </div>
+  </div></div></section>
   ${siteFooter()}`;
   wireSite();
   pulse();
-
-  /* Hero widget calls the real scrape endpoint. Nothing here is a mock preview. */
-  $("#heroRun").onclick=async ev=>{
-    const btn=ev.currentTarget,out=$("#heroOut"),url=$("#heroUrl").value.trim();
-    if(!url){out.textContent="Enter a URL first.";return;}
-    btn.disabled=true;out.textContent="Scraping...";
-    const t0=performance.now();
-    try{
-      const r=await fetch(API()+"/v2/scrape",{method:"POST",
-        headers:{"content-type":"application/json",...(KEY()?{authorization:"Bearer "+KEY()}:{})},
-        body:JSON.stringify({url,formats:[{type:"markdown"}]})});
-      const j=await r.json().catch(()=>({}));
-      const md=j&&j.data&&j.data.markdown;
-      out.innerHTML=r.ok&&md
-        ? `<span class="tok-lit">HTTP ${r.status} in ${Math.round(performance.now()-t0)} ms</span>\n\n`+esc(md.slice(0,900))
-        : hi(j);
-      if(r.status===401)toast("Add an API key in the playground first.","bad");
-    }catch(e){out.textContent=e.message;}
-    finally{btn.disabled=false;}
-  };
-
-  const SNIPPETS={
-    curl:()=>`curl -s -X POST ${API()}/v2/scrape \\\n  -H "Authorization: Bearer $FIRECRAWL_KEY" \\\n  -H "content-type: application/json" \\\n  -d '{"url":"https://example.com","formats":[{"type":"markdown"}]}'`,
-    javascript:()=>`import Firecrawl from "@mendable/firecrawl-js";\n\nconst firecrawl = new Firecrawl({\n  apiKey: process.env.FIRECRAWL_KEY,\n  apiUrl: "${API()}",\n});\n\nconst doc = await firecrawl.scrape("https://example.com", { formats: ["markdown"] });`,
-    python:()=>`from firecrawl import FirecrawlApp\n\napp = FirecrawlApp(\n    api_key=os.environ["FIRECRAWL_KEY"],\n    api_url="${API()}",\n)\n\ndoc = app.scrape_url("https://example.com", formats=["markdown"])`,
-  };
-  let lang="curl";
-  const drawQ=()=>{
-    $("#qtabs").innerHTML=Object.keys(SNIPPETS).map(k=>
-      `<button type="button" data-l="${k}" aria-pressed="${k===lang}">${k}</button>`).join("");
-    $$("#qtabs button").forEach(b=>b.onclick=()=>{lang=b.dataset.l;drawQ();});
-    $("#qcode").textContent=SNIPPETS[lang]();
-  };
-  drawQ();
-  $("#qcopy").onclick=ev=>copy(SNIPPETS[lang](),ev.currentTarget);
+  drawPlay();
+  drawQuick();
 }
 
-/* ---------------- docs, with the playground built in ---------------- */
+/* hero playground: real calls against the live API */
+function drawPlay(){
+  const tabs=$("#playTabs"),input=$("#playInput"),out=$("#playOut");
+  const defaults={scrape:"https://example.com",crawl:"https://example.com",map:"https://example.com",search:"firecrawl workers"};
+  const paint=()=>{
+    tabs.innerHTML=HERO_TABS.map(id=>`<button type="button" data-t="${id}" aria-pressed="${id===heroTab}">${esc(EP(id).title)}</button>`).join("");
+    $$("button",tabs).forEach(b=>b.onclick=()=>{heroTab=b.dataset.t;paint();});
+    input.value=defaults[heroTab];
+    input.placeholder=heroTab==="search"?"Search query":"https://example.com";
+    out.innerHTML=codeBlock(JSON.stringify(EP(heroTab).example,null,2));
+  };
+  paint();
+  $("#playRun").onclick=async ev=>{
+    const btn=ev.currentTarget,spec=EP(heroTab),v=input.value.trim();
+    if(!v){toast("Enter a value first.","bad");return;}
+    const body=spec.id==="search"?{query:v,limit:5}
+      :spec.id==="scrape"?{url:v,formats:[{type:"markdown"}]}
+      :spec.id==="map"?{url:v,limit:10}
+      :{url:v,limit:5,maxDepth:2};
+    btn.disabled=true;out.innerHTML=codeBlock("Waiting for the worker...",false);
+    const t0=performance.now();
+    try{
+      const r=await fetch(API()+spec.path,{method:"POST",
+        headers:{"content-type":"application/json",...(KEY()?{authorization:"Bearer "+KEY()}:{})},
+        body:JSON.stringify(body)});
+      const j=await r.json().catch(()=>({}));
+      const ms=Math.round(performance.now()-t0);
+      const md=j&&j.data&&j.data.markdown;
+      out.innerHTML=codeBlock(r.ok&&md
+        ? `// HTTP ${r.status} in ${ms} ms\n\n`+md.slice(0,900)
+        : JSON.stringify(j,null,2));
+      if(r.status===401)toast("Add a key in the playground to run this.","bad");
+    }catch(e){out.innerHTML=codeBlock(e.message,false);}
+    finally{btn.disabled=false;}
+  };
+}
+function drawQuick(){
+  const SNIPPETS={
+    "cURL":()=>`curl -s -X POST ${API()}/v2/scrape \\\n  -H "Authorization: Bearer $FIRECRAWL_KEY" \\\n  -H "content-type: application/json" \\\n  -d '{"url":"https://example.com","formats":[{"type":"markdown"}]}'`,
+    "Node.js":()=>`import Firecrawl from "@mendable/firecrawl-js";\n\nconst firecrawl = new Firecrawl({\n  apiKey: process.env.FIRECRAWL_KEY,\n  apiUrl: "${API()}",\n});\n\nconst doc = await firecrawl.scrape("https://example.com", {\n  formats: ["markdown"],\n});`,
+    "Python":()=>`# pip install firecrawl-py\nfrom firecrawl import FirecrawlApp\n\napp = FirecrawlApp(\n    api_key="fc-YOUR_API_KEY",\n    api_url="${API()}",\n)\n\ndoc = app.scrape_url("https://example.com", formats=["markdown"])`,
+  };
+  let lang="cURL";
+  const head=$("#qtabs"),body=$("#qcode");
+  const paint=()=>{
+    head.innerHTML=Object.keys(SNIPPETS).map(k=>
+      `<button type="button" data-l="${esc(k)}" aria-pressed="${k===lang}">${esc(k)}</button>`).join("")
+      +`<button class="cp" type="button" id="qcopy"><i class="ph ph-copy" aria-hidden="true"></i> Copy code</button>`;
+    $$("button[data-l]",head).forEach(b=>b.onclick=()=>{lang=b.dataset.l;paint();});
+    $("#qcopy").onclick=ev=>copy(SNIPPETS[lang](),ev.currentTarget);
+    body.innerHTML=codeBlock(SNIPPETS[lang](),false);
+  };
+  paint();
+}
+
+/* ---------------- docs ---------------- */
 const ERRORS=[["UNAUTHORIZED",401,"Missing or invalid key."],["KEY_REVOKED",403,"That key was revoked."],
   ["RATE_LIMIT",429,"Per-key requests per minute exceeded."],["INSUFFICIENT_CREDITS",402,"Monthly cap reached."],
   ["FORBIDDEN",403,"Admin only."],["BAD_REQUEST",400,"Validation failed."],
@@ -719,76 +827,81 @@ const ERRORS=[["UNAUTHORIZED",401,"Missing or invalid key."],["KEY_REVOKED",403,
 
 function vDocs(){
   const groups=[...new Set(EPS.map(e=>e.group))];
-  $("#root").innerHTML=`${siteNav("docs")}
-  <div class="keybar"><div class="wrap">
+  $("#root").innerHTML=`${siteHeader("docs")}
+  <div class="keybar"><div class="container">
     <label for="dkey">API key</label>
     <input type="text" id="dkey" value="${esc(KEY())}" placeholder="fc-..." spellcheck="false" autocomplete="off"/>
-    <span style="color:var(--ink-3);font-size:12px">Stored in this browser only.</span>
+    <span class="body-small">Stored in this browser only.</span>
     <span class="state"><span class="dot" id="pulse"></span><b id="pulsetxt">checking</b></span>
   </div></div>
-  <div class="wrap docs">
+  <div class="container docs">
     <nav class="docnav" aria-label="Docs sections">
-      <b>Start</b>
+      <h4>Start</h4>
       <a href="#/docs#auth">Authentication</a>
       <a href="#/docs#playground">Playground</a>
-      ${groups.map(g=>`<b>${esc(g)}</b>${EPS.filter(e=>e.group===g).map(e=>
+      ${groups.map(g=>`<h4>${esc(g)}</h4>${EPS.filter(e=>e.group===g).map(e=>
         `<a href="#/docs#${e.id}">${esc(e.title)}</a>`).join("")}`).join("")}
-      <b>Reference</b>
+      <h4>Reference</h4>
       <a href="#/docs#errors">Error codes</a>
     </nav>
-    <main class="doc">
-      <h1>Docs</h1>
-      <p class="lede">Every endpoint on this worker, with the exact request shape and a form that runs it. No account needed to read or to try.</p>
+    <main>
+      <h1 class="t-h4">Docs</h1>
+      <p class="body-large" style="margin-top:10px;max-width:62ch">Every endpoint on this worker, with the exact request shape and a form that runs it. Reading and running need no account.</p>
 
-      <section class="ep" id="auth" style="border-top:0;padding-top:32px;margin-top:32px">
-        <h2>Authentication</h2>
-        <p class="desc">Send your key as a bearer token on every call. Keys are created in the console, each with its own rate limit and monthly cap.</p>
-        <div class="split">
-          <pre class="out" style="max-height:none">Authorization: Bearer fc-...
-Base URL: ${esc(API())}</pre>
+      <section class="ep" id="auth" style="border-top:0;padding-top:32px">
+        <h2 class="t-h5">Authentication</h2>
+        <p class="body-medium desc">Send your key as a bearer token on every call. Keys are created in the console, each with its own rate limit and monthly cap.</p>
+        <div class="two">
+          <div class="card ticks">${ticks()}${codeBlock(`Authorization: Bearer fc-...\nBase URL: ${API()}`,false)}</div>
           <div>
-            <p class="desc" style="margin-top:0">No key yet? Sign in to the console and create one. Accounts are invite only.</p>
-            <div class="row" style="margin-top:14px"><a class="btn primary" href="#/login">Sign in</a>
-              <button class="btn" id="usekey"><i class="ph ph-key" aria-hidden="true"></i>Load saved key</button></div>
+            <p class="body-medium">No key yet? Sign in to the console and create one. Accounts are invite only.</p>
+            <div class="row" style="margin-top:14px">
+              <a class="btn btn-primary" href="#/login">Sign in</a>
+              <button class="btn btn-secondary" id="usekey"><i class="ph ph-key" aria-hidden="true"></i>Load saved key</button>
+            </div>
           </div>
         </div>
       </section>
 
       <section class="ep" id="playground">
-        <h2>Playground</h2>
-        <p class="desc">Paste a key in the bar above once. Every endpoint below then gets a form that sends a real request to this worker and shows the response, the status, and how long it took. Crawl and batch jobs poll themselves until they finish.</p>
+        <h2 class="t-h5">Playground</h2>
+        <p class="body-medium desc">Paste a key in the bar above once. Every endpoint below then gets a form that sends a real request to this worker and shows the response, its status, and how long it took. Crawl and batch jobs poll themselves until they finish.</p>
       </section>
 
       ${EPS.map(e=>`<section class="ep" id="${e.id}">
-        <h2>${esc(e.title)}</h2>
-        <div class="sig"><span class="verb ${e.method}">${e.method}</span><span>${esc(e.path)}</span></div>
-        <p class="desc">${esc(e.blurb)}</p>
+        <h2 class="t-h5">${esc(e.title)}</h2>
+        <div class="sig"><span class="tag heat">${e.method}</span><span class="mono-small">${esc(e.path)}</span></div>
+        <p class="body-medium desc">${esc(e.blurb)}</p>
         <div class="params">${e.params.map(([n,t,d])=>`<div class="p">
           <div class="n">${esc(n)}<em>${esc(t)}</em></div><div class="d">${esc(d)}</div></div>`).join("")}</div>
-        ${e.example?`<div class="split">
-          <div><span class="flabel">Request body</span><pre class="out" style="max-height:none;margin-top:6px">${hi(e.example)}</pre></div>
-          <div><span class="flabel">Shell</span><pre class="out" style="max-height:none;margin-top:6px" id="curl_${e.id}"></pre></div>
+        ${e.example?`<div class="two">
+          <div><span class="flabel">Request body</span><div class="card ticks" style="margin-top:6px">${ticks()}${jsonBlock(e.example)}</div></div>
+          <div><span class="flabel">Shell</span><div class="card ticks" style="margin-top:6px">${ticks()}<div id="curl_${e.id}"></div></div></div>
         </div>`:""}
         <div class="try">
-          <div class="hd"><i class="ph ph-play-circle" aria-hidden="true" style="color:var(--accent)"></i><h3>Try it</h3>
+          <div class="hd"><i class="ph ph-play-circle heat" aria-hidden="true"></i><b class="label-medium">Try it</b>
             <span class="note" id="meta_${e.id}">Nothing sent yet</span></div>
-          ${e.form.map(([name,kind,def])=>`<div class="field">
-            <label for="f_${e.id}_${name}">${esc(name)}</label>
-            ${kind==="textarea"
-              ?`<textarea id="f_${e.id}_${name}">${esc(def)}</textarea>`
-              :`<input type="${kind==="number"?"number":"text"}" id="f_${e.id}_${name}" value="${esc(def)}"/>`}
-          </div>`).join("")}
-          <div class="row"><button class="btn primary" data-run="${e.id}"><i class="ph ph-play" aria-hidden="true"></i>Send request</button>
-            <button class="btn" data-curl="${e.id}"><i class="ph ph-terminal-window" aria-hidden="true"></i>Copy as curl</button></div>
-          <div id="poll_${e.id}" style="margin-top:12px"></div>
-          <pre class="out" id="out_${e.id}" style="margin-top:12px">The response appears here.</pre>
+          <div class="bd">
+            ${e.form.map(([name,kind,def])=>`<div class="field">
+              <label for="f_${e.id}_${name}">${esc(name)}</label>
+              ${kind==="textarea"
+                ?`<textarea id="f_${e.id}_${name}">${esc(def)}</textarea>`
+                :`<input type="${kind==="number"?"number":"text"}" id="f_${e.id}_${name}" value="${esc(def)}"/>`}
+            </div>`).join("")}
+            <div class="row" style="margin-top:4px">
+              <button class="btn btn-primary" data-run="${e.id}"><i class="ph ph-play" aria-hidden="true"></i>Send request</button>
+              <button class="btn btn-secondary" data-curl="${e.id}"><i class="ph ph-terminal-window" aria-hidden="true"></i>Copy as curl</button>
+            </div>
+            <div id="poll_${e.id}" style="margin-top:12px"></div>
+            <div style="margin-top:12px;border:1px solid var(--border-faint);border-radius:12px;overflow:hidden" id="out_${e.id}">${codeBlock("The response appears here.",false)}</div>
+          </div>
         </div>
       </section>`).join("")}
 
       <section class="ep" id="errors">
-        <h2>Error codes</h2>
-        <p class="desc">Every failure returns the same envelope: success false, a code, and a readable message.</p>
-        <div class="params" style="margin-top:18px">${ERRORS.map(([c,h,m])=>`<div class="p">
+        <h2 class="t-h5">Error codes</h2>
+        <p class="body-medium desc">Every failure returns the same envelope: success false, a code, and a readable message.</p>
+        <div class="params">${ERRORS.map(([c,h,m])=>`<div class="p">
           <div class="n">${esc(c)}<em>HTTP ${h}</em></div><div class="d">${esc(m)}</div></div>`).join("")}</div>
       </section>
     </main>
@@ -803,7 +916,7 @@ Base URL: ${esc(API())}</pre>
 
   EPS.forEach(e=>{
     const read=name=>$(`#f_${e.id}_${name}`).value;
-    const refreshCurl=()=>{const el=$("#curl_"+e.id);if(el)el.textContent=curlFor(e,buildBody(e,read));};
+    const refreshCurl=()=>{const el=$("#curl_"+e.id);if(el)el.innerHTML=codeBlock(curlFor(e,buildBody(e,read)),false);};
     refreshCurl();
     e.form.forEach(([name])=>{const el=$(`#f_${e.id}_${name}`);if(el)el.oninput=refreshCurl;});
     $(`button[data-curl="${e.id}"]`).onclick=ev=>copy(curlFor(e,buildBody(e,read)),ev.currentTarget);
@@ -812,37 +925,38 @@ Base URL: ${esc(API())}</pre>
 }
 
 const pollTimers={};
+function docKey(){const f=$("#dkey");return ((f&&f.value)||KEY()).trim();}
 async function runEndpoint(spec,read,btn){
   const out=$("#out_"+spec.id),meta=$("#meta_"+spec.id),pollBox=$("#poll_"+spec.id);
   clearInterval(pollTimers[spec.id]);pollBox.innerHTML="";
   const body=buildBody(spec,read);
-  const keyField=$("#dkey");
-  const key=((keyField&&keyField.value)||KEY()).trim();
   if(spec.id==="status"&&!body.jobId){
-    meta.innerHTML=`<span class="chip bad">jobId missing</span>`;
-    out.textContent="Run a crawl or a batch scrape first, then paste the job ID here.";return;
+    meta.innerHTML=`<span class="tag bad">jobId missing</span>`;
+    out.innerHTML=codeBlock("Run a crawl or a batch scrape first, then paste the job ID here.",false);return;
   }
-  btn.disabled=true;out.textContent="Waiting for the worker...";
+  btn.disabled=true;out.innerHTML=codeBlock("Waiting for the worker...",false);
   const t0=performance.now();
   try{
+    const key=docKey();
     const path=spec.raw?spec.raw(body):spec.path;
     const opts={method:spec.method,headers:{"content-type":"application/json",...(key?{authorization:"Bearer "+key}:{})}};
     if(spec.method!=="GET")opts.body=JSON.stringify(body);
     const r=await fetch(API()+path,opts);
     const j=await r.json().catch(()=>({}));
-    paint(spec.id,r.status,Math.round(performance.now()-t0),j);
+    paintResp(spec.id,r.status,Math.round(performance.now()-t0),j);
     if(r.status===401)toast("That request needs a valid API key.","bad");
     if(j&&j.id&&spec.async)startPoll(spec,j.id);
   }catch(e){
-    meta.innerHTML=`<span class="chip bad">failed</span>`;
-    out.textContent=e.message;
+    meta.innerHTML=`<span class="tag bad">failed</span>`;
+    out.innerHTML=codeBlock(e.message,false);
   }finally{btn.disabled=false;}
 }
-function paint(id,status,ms,j){
+function paintResp(id,status,ms,j){
   const ok=status>=200&&status<300;
   const size=new Blob([JSON.stringify(j)]).size;
-  $("#meta_"+id).innerHTML=`<span class="chip ${ok?"ok":"bad"}">HTTP ${status}</span> <span class="mono" style="color:var(--ink-3)">${ms?ms+" ms":""} ${size>1024?(size/1024).toFixed(1)+" kB":size+" B"}</span>`;
-  $("#out_"+id).innerHTML=hi(j);
+  $("#meta_"+id).innerHTML=`<span class="tag ${ok?"ok":"bad"}">HTTP ${status}</span>`
+    +`<span class="mono" style="font-size:12px">${ms?ms+" ms":""} ${size>1024?(size/1024).toFixed(1)+" kB":size+" B"}</span>`;
+  $("#out_"+id).innerHTML=jsonBlock(j);
 }
 function startPoll(spec,jobId){
   const box=$("#poll_"+spec.id),t0=Date.now();
@@ -850,11 +964,10 @@ function startPoll(spec,jobId){
   pollTimers[spec.id]=setInterval(async()=>{
     box.innerHTML=`<div class="callout info" style="margin:0"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i><span>Polling ${esc(spec.async)}/${esc(jobId)} for ${Math.round((Date.now()-t0)/1000)}s</span></div>`;
     try{
-      const keyField=$("#dkey");
-      const key=((keyField&&keyField.value)||KEY()).trim();
+      const key=docKey();
       const r=await fetch(`${API()}/v2/${spec.async}/${jobId}`,{headers:key?{authorization:"Bearer "+key}:{}});
       const j=await r.json();
-      paint(spec.id,r.status,0,j);
+      paintResp(spec.id,r.status,0,j);
       if(["completed","failed","cancelled"].includes(j.status)){
         clearInterval(pollTimers[spec.id]);box.innerHTML="";toast("Job "+j.status+".",j.status==="completed"?"ok":"bad");
       }
@@ -866,29 +979,24 @@ function startPoll(spec,jobId){
   },2500);
 }
 
-/* ---------------- auth views ---------------- */
-const PITCH=`<div class="pitch">
-  <h2>Your scrape API, with the controls in one place.</h2>
-  <ul>
-    <li><i class="ph ph-key" aria-hidden="true"></i><span>Scoped keys with their own rate limit and monthly cap.</span></li>
-    <li><i class="ph ph-chart-line-up" aria-hidden="true"></i><span>Credits and requests broken down by endpoint and key.</span></li>
-    <li><i class="ph ph-book-open-text" aria-hidden="true"></i><span>Docs and playground stay open to everyone.</span></li>
-  </ul>
-</div>`;
-
+/* ---------------- auth ---------------- */
 function vLogin(){
-  $("#root").innerHTML=`${siteNav()}<div class="auth">${PITCH}
-  <div class="form"><div class="inner">
-    <h1>Sign in</h1>
-    <p class="lede">Keys, usage, and teammates for this worker.</p>
-    <div id="err"></div>
-    <form id="f" novalidate>
-      <div class="field"><label for="email">Email</label><input type="email" id="email" autocomplete="username" placeholder="you@company.com" required/></div>
-      <div class="field"><label for="pw">Password</label><input type="password" id="pw" autocomplete="current-password" required/></div>
-      <button class="btn primary" id="go" type="submit" style="width:100%;justify-content:center">Sign in</button>
-    </form>
-    <p style="margin-top:18px;color:var(--ink-3);font-size:13px">Need access? Ask an admin to invite you. There is no public signup. The docs and the playground stay open without an account.</p>
-  </div></div></div>`;
+  $("#root").innerHTML=`${siteHeader()}
+  <div class="auth"><div class="authbox">
+    <div class="card ticks card-pad" style="padding:28px">${ticks()}
+      <div class="top-mark">${logo()}</div>
+      <h1 class="t-h5">Sign in</h1>
+      <p class="lede body-medium">Keys, usage, and teammates for this worker.</p>
+      <div id="err"></div>
+      <form id="f" novalidate>
+        <div class="field"><label for="email">Email</label><input type="email" id="email" autocomplete="username" placeholder="you@company.com" required/></div>
+        <div class="field"><label for="pw">Password</label><input type="password" id="pw" autocomplete="current-password" required/></div>
+        <button class="btn btn-primary" id="go" type="submit" style="width:100%">Sign in</button>
+      </form>
+    </div>
+    <p class="body-small" style="text-align:center;margin-top:16px">Need access? Ask an admin to invite you. There is no public signup.
+      The <a href="#/docs" class="heat">docs and playground</a> are open without an account.</p>
+  </div></div>`;
   wireSite();
   const fail=m=>$("#err").innerHTML=`<div class="callout err"><i class="ph ph-warning-circle" aria-hidden="true"></i><span>${esc(m)}</span></div>`;
   $("#f").onsubmit=async e=>{
@@ -902,19 +1010,21 @@ function vLogin(){
     finally{btn.disabled=false;}
   };
 }
-
 function vInvite(token){
-  $("#root").innerHTML=`${siteNav()}<div class="auth">${PITCH}
-  <div class="form"><div class="inner">
-    <h1>Set your password</h1>
-    <p class="lede">This is your first sign-in. Pick a password of at least 8 characters.</p>
-    <div id="err"></div>
-    <form id="f" novalidate>
-      <div class="field"><label for="pw">Password</label><input type="password" id="pw" autocomplete="new-password" required/><span class="hint">Minimum 8 characters.</span></div>
-      <div class="field"><label for="pw2">Confirm password</label><input type="password" id="pw2" autocomplete="new-password" required/></div>
-      <button class="btn primary" id="go" type="submit" style="width:100%;justify-content:center">Save and continue</button>
-    </form>
-  </div></div></div>`;
+  $("#root").innerHTML=`${siteHeader()}
+  <div class="auth"><div class="authbox">
+    <div class="card ticks" style="padding:28px">${ticks()}
+      <div class="top-mark">${logo()}</div>
+      <h1 class="t-h5">Set your password</h1>
+      <p class="lede body-medium">This is your first sign-in. Pick a password of at least 8 characters.</p>
+      <div id="err"></div>
+      <form id="f" novalidate>
+        <div class="field"><label for="pw">Password</label><input type="password" id="pw" autocomplete="new-password" required/><span class="hint">Minimum 8 characters.</span></div>
+        <div class="field"><label for="pw2">Confirm password</label><input type="password" id="pw2" autocomplete="new-password" required/></div>
+        <button class="btn btn-primary" id="go" type="submit" style="width:100%">Save and continue</button>
+      </form>
+    </div>
+  </div></div>`;
   wireSite();
   const fail=m=>$("#err").innerHTML=`<div class="callout err"><i class="ph ph-warning-circle" aria-hidden="true"></i><span>${esc(m)}</span></div>`;
   $("#f").onsubmit=async e=>{
@@ -931,26 +1041,24 @@ function vInvite(token){
   };
 }
 
-/* ---------------- console chrome ---------------- */
+/* ---------------- console ---------------- */
 function consoleChrome(inner){
   const here=parseRoute().name;
   const links=Object.entries(CONSOLE_PAGES).filter(([,p])=>!p.admin||ROLE()==="admin");
   return `<header class="top">
-    ${brandLink("Console")}
+    ${logo()}<span class="tag" style="margin-left:-2px">Console</span>
     <div class="right">
       <span class="host" title="API base URL"><span class="dot" id="pulse"></span><b id="pulsetxt">${esc(API().replace(/^https?:\/\//,""))}</b></span>
       ${themeBtn()}
-      <button class="btn icon quiet" id="baseBtn" title="Change API base URL" aria-label="Change API base URL"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i></button>
+      <button class="btn btn-ghost btn-icon" id="baseBtn" title="Change API base URL" aria-label="Change API base URL"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i></button>
     </div>
   </header>
   <div class="layout">
     <nav class="side" aria-label="Console">
       ${links.map(([path,p])=>`<a href="#${path}" ${here===path?'aria-current="page"':""}><i class="ph ${p.icon}" aria-hidden="true"></i>${p.title}</a>`).join("")}
       <a href="#/docs"><i class="ph ph-book-open-text" aria-hidden="true"></i>Docs</a>
-      <div class="who">
-        <span class="mail">${esc(EMAIL())}</span>
-        <button class="btn sm quiet" id="outBtn"><i class="ph ph-sign-out" aria-hidden="true"></i>Log out</button>
-      </div>
+      <div class="who"><span class="mail">${esc(EMAIL())}</span>
+        <button class="btn btn-ghost btn-sm" id="outBtn"><i class="ph ph-sign-out" aria-hidden="true"></i>Log out</button></div>
     </nav>
     <main class="main" id="view">${inner}</main>
   </div>`;
@@ -968,11 +1076,10 @@ function wireConsole(){
   if(d)fetch(API()+"/health").then(r=>{d.className="dot "+(r.ok?"up":"down");}).catch(()=>{d.className="dot down";});
 }
 
-/* ---------------- console views ---------------- */
 function areaChart(daily){
   const pts=(daily||[]).map(d=>d.credits);
   if(!pts.length)return `<div class="empty"><i class="ph ph-chart-line" aria-hidden="true"></i><b>No traffic yet</b><p>Run a request from the playground and the daily curve shows up here.</p></div>`;
-  const w=600,h=150,pad=6,max=Math.max(1,...pts);
+  const w=600,h=148,pad=6,max=Math.max(1,...pts);
   const x=i=>pts.length===1?w/2:pad+i*(w-pad*2)/(pts.length-1);
   const y=v=>h-pad-(v/max)*(h-pad*2);
   const line=pts.map((v,i)=>`${i?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
@@ -981,15 +1088,15 @@ function areaChart(daily){
   const hits=(daily||[]).map((d,i)=>`<rect class="hit" x="${(x(i)-bw/2).toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="${h}" fill="transparent"><title>${esc(d.day)}: ${d.credits} credits</title></rect>`).join("");
   return `<svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="Daily credits for the last 30 days">
     <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="var(--accent)" stop-opacity=".26"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/>
+      <stop offset="0" stop-color="#fa5d19" stop-opacity=".22"/><stop offset="1" stop-color="#fa5d19" stop-opacity="0"/>
     </linearGradient></defs>
     <path d="${area}" fill="url(#fill)"/><path class="ln" d="${line}"/>${hits}</svg>
   <div class="legend"><span>${esc((daily[0]||{}).day||"")}</span><span>peak ${max}</span><span>${esc((daily[daily.length-1]||{}).day||"")}</span></div>`;
 }
-const jobChip=s=>s==="completed"?`<span class="chip ok">completed</span>`
-  :s==="failed"?`<span class="chip bad">failed</span>`
-  :s==="cancelled"?`<span class="chip">cancelled</span>`
-  :`<span class="chip warn">${esc(s)}</span>`;
+const jobTag=s=>s==="completed"?`<span class="tag ok">completed</span>`
+  :s==="failed"?`<span class="tag bad">failed</span>`
+  :s==="cancelled"?`<span class="tag">cancelled</span>`
+  :`<span class="tag warn">${esc(s)}</span>`;
 
 async function vOverview(el){
   const [{j:me},{j:usage},{j:jobs}]=await Promise.all([
@@ -1001,33 +1108,33 @@ async function vOverview(el){
   const running=list.filter(x=>x.status==="queued"||x.status==="active").length;
   el.innerHTML=`
   <div class="head">
-    <div><h1>Overview</h1><p>Team <span class="mono">${esc((d.teamId||"").slice(0,8))}</span> over the last 30 days.</p></div>
-    <div class="acts"><a class="btn" href="#/docs#playground"><i class="ph ph-play-circle" aria-hidden="true"></i>Open playground</a></div>
+    <div><h1 class="t-h5">Overview</h1><p class="body-medium">Team <span class="mono">${esc((d.teamId||"").slice(0,8))}</span> over the last 30 days.</p></div>
+    <div class="acts"><a class="btn btn-secondary" href="#/docs#playground"><i class="ph ph-play-circle" aria-hidden="true"></i>Open playground</a></div>
   </div>
   <div class="stats">
-    <div class="stat"><div class="k"><i class="ph ph-coins" aria-hidden="true"></i>Credits</div><div class="v">${u.total.credits}</div><div class="s">last 30 days</div></div>
-    <div class="stat"><div class="k"><i class="ph ph-arrows-left-right" aria-hidden="true"></i>Requests</div><div class="v">${u.total.requests}</div><div class="s">last 30 days</div></div>
-    <div class="stat"><div class="k"><i class="ph ph-calendar-blank" aria-hidden="true"></i>This month</div><div class="v">${d.creditsUsedMonth}</div><div class="s">${d.creditsLimit?"cap "+d.creditsLimit:"no cap set"}</div></div>
-    <div class="stat"><div class="k"><i class="ph ph-spinner-gap" aria-hidden="true"></i>Active jobs</div><div class="v">${running}</div><div class="s">queued or running</div></div>
+    <div class="cell"><div class="k"><i class="ph ph-coins" aria-hidden="true"></i>Credits</div><div class="v">${u.total.credits}</div><div class="s">last 30 days</div></div>
+    <div class="cell"><div class="k"><i class="ph ph-arrows-left-right" aria-hidden="true"></i>Requests</div><div class="v">${u.total.requests}</div><div class="s">last 30 days</div></div>
+    <div class="cell"><div class="k"><i class="ph ph-calendar-blank" aria-hidden="true"></i>This month</div><div class="v">${d.creditsUsedMonth}</div><div class="s">${d.creditsLimit?"cap "+d.creditsLimit:"no cap set"}</div></div>
+    <div class="cell"><div class="k"><i class="ph ph-spinner-gap" aria-hidden="true"></i>Active jobs</div><div class="v">${running}</div><div class="s">queued or running</div></div>
   </div>
   <div class="cols">
-    <section class="panel"><div class="panel-hd"><h2>Daily credits</h2><span class="note">hover a day for the exact count</span></div>
-      <div class="panel-bd">${areaChart(u.daily)}</div></section>
-    <section class="panel"><div class="panel-hd"><h2>By endpoint</h2></div>
-      ${(u.byEndpoint||[]).length?`<table><thead><tr><th>Endpoint</th><th>Requests</th><th>Credits</th></tr></thead><tbody>
+    <section class="panel"><div class="ph"><b class="label-medium">Daily credits</b><span class="note">hover a day for the exact count</span></div>
+      <div class="pb">${areaChart(u.daily)}</div></section>
+    <section class="panel"><div class="ph"><b class="label-medium">By endpoint</b></div>
+      ${(u.byEndpoint||[]).length?`<table><thead><tr><th>endpoint</th><th>requests</th><th>credits</th></tr></thead><tbody>
         ${u.byEndpoint.map(x=>`<tr><td class="mono">${esc(x.endpoint)}</td><td class="num">${x.requests}</td><td class="num">${x.credits}</td></tr>`).join("")}
       </tbody></table>`:`<div class="empty"><i class="ph ph-list-dashes" aria-hidden="true"></i><b>Nothing recorded</b><p>Endpoint totals appear after your first authenticated call.</p></div>`}
     </section>
   </div>
-  <section class="panel"><div class="panel-hd"><h2>Usage by key</h2><a class="note" href="#/keys">Manage keys</a></div>
-    ${(u.byKey||[]).length?`<table><thead><tr><th>Key</th><th>Requests</th><th>Credits</th></tr></thead><tbody>
+  <section class="panel" style="margin-top:16px"><div class="ph"><b class="label-medium">Usage by key</b><a class="note" href="#/keys">Manage keys</a></div>
+    ${(u.byKey||[]).length?`<table><thead><tr><th>key</th><th>requests</th><th>credits</th></tr></thead><tbody>
       ${u.byKey.map(x=>`<tr><td>${esc(x.name)}<span class="sub2 mono">${esc(x.prefix)}</span></td><td class="num">${x.requests}</td><td class="num">${x.credits}</td></tr>`).join("")}
     </tbody></table>`:`<div class="empty"><i class="ph ph-key" aria-hidden="true"></i><b>No key traffic yet</b><p>Create a key, then call the API with it to see per-key spend.</p></div>`}
   </section>
-  <section class="panel"><div class="panel-hd"><h2>Recent jobs</h2><span class="note">crawl and batch runs</span></div>
-    ${list.length?`<table><thead><tr><th>Job</th><th>Kind</th><th>Status</th><th>Progress</th><th>Created</th></tr></thead><tbody>
-      ${list.map(x=>`<tr><td class="mono">${esc(x.id.slice(0,8))}</td><td>${esc(x.kind)}</td><td>${jobChip(x.status)}</td>
-        <td class="num">${x.completed} / ${x.total}</td><td class="mono" style="color:var(--ink-3)">${shortDate(x.created_at)}</td></tr>`).join("")}
+  <section class="panel"><div class="ph"><b class="label-medium">Recent jobs</b><span class="note">crawl and batch runs</span></div>
+    ${list.length?`<table><thead><tr><th>job</th><th>kind</th><th>status</th><th>progress</th><th>created</th></tr></thead><tbody>
+      ${list.map(x=>`<tr><td class="mono">${esc(x.id.slice(0,8))}</td><td>${esc(x.kind)}</td><td>${jobTag(x.status)}</td>
+        <td class="num">${x.completed} / ${x.total}</td><td class="mono muted">${shortDate(x.created_at)}</td></tr>`).join("")}
     </tbody></table>`:`<div class="empty"><i class="ph ph-stack" aria-hidden="true"></i><b>No jobs yet</b><p>Crawls and batch scrapes you start will be listed here with live progress.</p></div>`}
   </section>`;
 }
@@ -1036,30 +1143,30 @@ async function vKeys(el){
   const {j}=await api("/dashboard/keys");
   const keys=j.success?j.data:[];
   el.innerHTML=`
-  <div class="head"><div><h1>API keys</h1><p>Each key carries its own rate limit and monthly cap. The secret is shown once.</p></div></div>
+  <div class="head"><div><h1 class="t-h5">API keys</h1><p class="body-medium">Each key carries its own rate limit and monthly cap. The secret is shown once.</p></div></div>
   <div id="banner"></div>
-  <section class="panel"><div class="panel-hd"><h2>Create a key</h2></div><div class="panel-bd">
-    <div class="cols even" style="gap:14px">
+  <section class="panel"><div class="ph"><b class="label-medium">Create a key</b></div><div class="pb">
+    <div class="cols even">
       <div class="field"><label for="kname">Name</label><input type="text" id="kname" value="default"/><span class="hint">Where this key will be used, for example "staging worker".</span></div>
-      <div class="cols even" style="gap:14px">
+      <div class="cols even">
         <div class="field"><label for="krpm">Requests per minute</label><input type="number" id="krpm" value="60" min="1" max="1000"/></div>
         <div class="field"><label for="kcap">Monthly cap</label><input type="number" id="kcap" value="0" min="0"/><span class="hint">0 means no cap.</span></div>
       </div>
     </div>
-    <div class="row"><button class="btn primary" id="kcreate"><i class="ph ph-plus" aria-hidden="true"></i>Create key</button></div>
+    <div class="row"><button class="btn btn-primary" id="kcreate"><i class="ph ph-plus" aria-hidden="true"></i>Create key</button></div>
   </div></section>
-  <section class="panel"><div class="panel-hd"><h2>${keys.length} key${keys.length===1?"":"s"}</h2></div>
-    ${keys.length?`<table><thead><tr><th>Name</th><th>Prefix</th><th>Req / min</th><th>Monthly cap</th><th>Used</th><th>Last used</th><th></th></tr></thead><tbody>
+  <section class="panel"><div class="ph"><b class="label-medium">${keys.length} key${keys.length===1?"":"s"}</b></div>
+    ${keys.length?`<table><thead><tr><th>name</th><th>prefix</th><th>req / min</th><th>monthly cap</th><th>used</th><th>last used</th><th></th></tr></thead><tbody>
     ${keys.map(k=>`<tr>
       <td>${esc(k.name||"")}<span class="sub2 mono">${esc(k.id.slice(0,8))}</span></td>
       <td class="mono">${esc(k.key_prefix)}</td>
-      <td><input class="tiny" type="number" data-k="rpm" data-id="${k.id}" value="${k.rate_limit_per_min}" min="1" max="1000" style="width:78px" aria-label="Requests per minute"/></td>
-      <td><input class="tiny" type="number" data-k="cap" data-id="${k.id}" value="${k.monthly_limit}" min="0" style="width:88px" aria-label="Monthly cap"/></td>
+      <td><input type="number" data-k="rpm" data-id="${k.id}" value="${k.rate_limit_per_min}" min="1" max="1000" style="width:82px;padding:6px 8px;font-family:var(--mono);font-size:13px" aria-label="Requests per minute"/></td>
+      <td><input type="number" data-k="cap" data-id="${k.id}" value="${k.monthly_limit}" min="0" style="width:92px;padding:6px 8px;font-family:var(--mono);font-size:13px" aria-label="Monthly cap"/></td>
       <td class="num">${k.used_month??0}</td>
-      <td class="mono" style="color:var(--ink-3)">${k.last_used_at?shortDate(k.last_used_at):"never"}</td>
+      <td class="mono muted">${k.last_used_at?shortDate(k.last_used_at):"never"}</td>
       <td style="white-space:nowrap;text-align:right">${k.is_active
-        ?`<button class="btn sm" data-act="save" data-id="${k.id}">Save</button> <button class="btn sm danger" data-act="revoke" data-id="${k.id}">Revoke</button>`
-        :`<span class="chip bad">revoked</span>`}</td></tr>`).join("")}
+        ?`<button class="btn btn-secondary btn-sm" data-act="save" data-id="${k.id}">Save</button> <button class="btn btn-danger btn-sm" data-act="revoke" data-id="${k.id}">Revoke</button>`
+        :`<span class="tag bad">revoked</span>`}</td></tr>`).join("")}
     </tbody></table>`:`<div class="empty"><i class="ph ph-key" aria-hidden="true"></i><b>No keys yet</b><p>Create your first key above, then paste it into the playground or your SDK client.</p></div>`}
   </section>`;
 
@@ -1073,8 +1180,8 @@ async function vKeys(el){
       await vKeys(el);
       const slot=$("#banner",el);
       if(slot){
-        slot.innerHTML=`<div class="reveal-key"><b><i class="ph-fill ph-seal-check" aria-hidden="true" style="color:var(--ok)"></i> Copy this key now. It is not shown again.</b>
-          <code>${esc(j.data.key)}</code><button class="btn sm" id="copyk"><i class="ph ph-copy" aria-hidden="true"></i>Copy key</button></div>`;
+        slot.innerHTML=`<div class="keyout"><b>Copy this key now. It is not shown again.</b>
+          <code>${esc(j.data.key)}</code><button class="btn btn-secondary btn-sm" id="copyk"><i class="ph ph-copy" aria-hidden="true"></i>Copy key</button></div>`;
         $("#copyk",el).onclick=ev=>copy(j.data.key,ev.currentTarget);
       }
     }finally{btn.disabled=false;}
@@ -1100,22 +1207,22 @@ async function vPeople(el){
   const {j}=await api("/dashboard/users");
   const people=j.success?j.data:[];
   el.innerHTML=`
-  <div class="head"><div><h1>People</h1><p>Invite a teammate. They set their own password the first time they open the link.</p></div></div>
+  <div class="head"><div><h1 class="t-h5">People</h1><p class="body-medium">Invite a teammate. They set their own password the first time they open the link.</p></div></div>
   <div id="banner"></div>
-  <section class="panel"><div class="panel-hd"><h2>Invite a teammate</h2></div><div class="panel-bd">
+  <section class="panel"><div class="ph"><b class="label-medium">Invite a teammate</b></div><div class="pb">
     <div class="field" style="max-width:420px"><label for="iemail">Email</label><input type="email" id="iemail" placeholder="teammate@company.com"/>
       <span class="hint">You get a link to copy and send. Nothing is emailed yet.</span></div>
-    <div class="row"><button class="btn primary" id="inv"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>Create invite link</button></div>
+    <div class="row"><button class="btn btn-primary" id="inv"><i class="ph ph-paper-plane-tilt" aria-hidden="true"></i>Create invite link</button></div>
   </div></section>
-  <section class="panel"><div class="panel-hd"><h2>${people.length} member${people.length===1?"":"s"}</h2></div>
-    <table><thead><tr><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>
+  <section class="panel"><div class="ph"><b class="label-medium">${people.length} member${people.length===1?"":"s"}</b></div>
+    <table><thead><tr><th>email</th><th>role</th><th>status</th><th></th></tr></thead><tbody>
     ${people.map(p=>`<tr>
       <td>${esc(p.email)}</td>
-      <td><span class="chip${p.role==="admin"?" accent":""}">${esc(p.role)}</span></td>
-      <td>${p.active?`<span class="chip ok">active</span>`:`<span class="chip warn">invite pending</span>`}</td>
+      <td><span class="tag${p.role==="admin"?" heat":""}">${esc(p.role)}</span></td>
+      <td>${p.active?`<span class="tag ok">active</span>`:`<span class="tag warn">invite pending</span>`}</td>
       <td style="text-align:right;white-space:nowrap">${p.active
-        ?`<button class="btn sm" data-reset="${esc(p.email)}">Reset password</button>`
-        :`<button class="btn sm" data-re="${esc(p.email)}">New link</button>`}</td>
+        ?`<button class="btn btn-secondary btn-sm" data-reset="${esc(p.email)}">Reset password</button>`
+        :`<button class="btn btn-secondary btn-sm" data-re="${esc(p.email)}">New link</button>`}</td>
     </tr>`).join("")||`<tr><td colspan="4"><div class="empty"><i class="ph ph-users-three" aria-hidden="true"></i><b>Just you so far</b><p>Invite the people who need keys and usage visibility.</p></div></td></tr>`}
     </tbody></table>
   </section>`;
@@ -1124,8 +1231,8 @@ async function vPeople(el){
     await vPeople(el);
     const slot=$("#banner",el);
     if(!slot)return;
-    slot.innerHTML=`<div class="reveal-key"><b><i class="ph-fill ph-link" aria-hidden="true" style="color:var(--accent)"></i> ${esc(label)} for ${esc(j.data.email)}, valid until ${esc((j.data.expiresAt||"").slice(0,10))}</b>
-      <code>${esc(j.data.inviteUrl)}</code><button class="btn sm" id="copyk"><i class="ph ph-copy" aria-hidden="true"></i>Copy link</button></div>`;
+    slot.innerHTML=`<div class="keyout"><b>${esc(label)} for ${esc(j.data.email)}, valid until ${esc((j.data.expiresAt||"").slice(0,10))}</b>
+      <code>${esc(j.data.inviteUrl)}</code><button class="btn btn-secondary btn-sm" id="copyk"><i class="ph ph-copy" aria-hidden="true"></i>Copy link</button></div>`;
     $("#copyk",el).onclick=ev=>copy(j.data.inviteUrl,ev.currentTarget);
   };
   const fail=m=>{const s=$("#banner",el);if(s)s.innerHTML=`<div class="callout err"><i class="ph ph-warning-circle" aria-hidden="true"></i><span>${esc(m)}</span></div>`;};

@@ -1,6 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { readFileSync } from "node:fs";
 import app from "../src/index";
 import type { Env } from "../src/env";
+import { hashPassword } from "../src/lib/password";
 
 // ---- in-memory fakes ----
 const makeKV = () => {
@@ -34,6 +36,8 @@ const makeD1 = () => {
   const pages: Array<Record<string, unknown>> = [];
   const usage: Array<Record<string, unknown>> = [];
   const apiKeys: Array<Record<string, unknown>> = [];
+  const users: Array<Record<string, unknown>> = [];
+  const sessions: Array<Record<string, unknown>> = [];
   const prep = (sql: string) => {
     let binds: unknown[] = [];
     const stmt = {
@@ -99,14 +103,68 @@ const makeD1 = () => {
           return { meta: { changes: 1 } };
         }
         if (sql.includes("INSERT INTO usage_log")) {
-          usage.push({ team_id: binds[0], endpoint: binds[1], credits: binds[2], created_at: new Date().toISOString() });
+          usage.push({ team_id: binds[0], endpoint: binds[1], credits: binds[2], key_id: binds[3] ?? null, created_at: new Date().toISOString() });
           return { meta: { changes: 1 } };
         }
         if (sql.includes("UPDATE teams")) return { meta: { changes: 1 } };
         if (sql.includes("idempotency_keys")) return { meta: { changes: 1 } };
+        if (sql.includes("INSERT INTO sessions")) { sessions.push({ token_hash: binds[0], user_id: binds[1], expires_at: binds[2] }); return { meta: { changes: 1 } }; }
+        if (sql.includes("INSERT INTO users")) {
+          users.push({
+            id: binds[0],
+            email: binds[1],
+            password_hash: binds[2],
+            team_id: binds[3],
+            role: binds[4] ?? "member",
+            invite_token_hash: binds[5] ?? null,
+            invite_expires_at: binds[6] ?? null,
+            created_at: new Date().toISOString(),
+          });
+          return { meta: { changes: 1 } };
+        }
+        if (sql.includes("UPDATE users SET password_hash")) {
+          const u = users.find(x => x.id === binds[3] || x.id === binds[1]);
+          if (u) {
+            u.password_hash = binds[0];
+            u.invite_token_hash = binds.length >= 4 ? binds[1] : null;
+            u.invite_expires_at = binds.length >= 4 ? binds[2] : null;
+          }
+          return { meta: { changes: 1 } };
+        }
+        if (sql.includes("UPDATE users SET invite_token_hash")) {
+          const u = users.find(x => x.id === binds[2]);
+          if (u) {
+            u.invite_token_hash = binds[0];
+            u.invite_expires_at = binds[1];
+          }
+          return { meta: { changes: 1 } };
+        }
+        if (sql.includes("DELETE FROM sessions WHERE user_id")) {
+          for (let i = sessions.length - 1; i >= 0; i--) {
+            if (sessions[i].user_id === binds[0]) sessions.splice(i, 1);
+          }
+          return { meta: { changes: 1 } };
+        }
+        if (sql.includes("INSERT INTO teams")) return { meta: { changes: 1 } };
+        if (sql.includes("INSERT INTO api_keys")) { apiKeys.push({ id: binds[0], key_prefix: binds[1], key_hash: binds[2], team_id: binds[3], user_id: binds[4], name: binds[5], rate_limit_per_min: binds[6], monthly_limit: binds[7], is_active: 1, key_hash_dup: binds[2] }); return { meta: { changes: 1 } }; }
+        if (sql.includes("UPDATE api_keys SET is_active = 0")) { const k = apiKeys.find(k => k.id === binds[0]); if (k) { k.is_active = 0; return { meta: { changes: 1 } }; } return { meta: { changes: 0 } }; }
+        if (sql.includes("UPDATE api_keys SET last_used_at")) return { meta: { changes: 1 } };
         return { meta: { changes: 0 } };
       },
       async first<T>() {
+        if (sql.includes("JOIN users")) {
+          const s = sessions.find(x => x.token_hash === binds[0]);
+          const u = s ? users.find(x => x.id === s.user_id) : null;
+          return (u
+            ? { id: u.id, email: u.email, team_id: u.team_id, role: u.role ?? "member" }
+            : null) as T | null;
+        }
+        if (sql.includes("invite_token_hash") && sql.includes("FROM users")) {
+          return (users.find(u => u.invite_token_hash === binds[0]) ?? null) as T | null;
+        }
+        if (sql.includes("FROM users WHERE email")) {
+          return (users.find(u => u.email === binds[0]) ?? null) as T | null;
+        }
         if (sql.includes("FROM api_keys")) {
           return (apiKeys.find(k => k.key_hash === binds[0]) ?? null) as T | null;
         }
@@ -133,13 +191,26 @@ const makeD1 = () => {
           return { n: 0 } as T;
         }
         if (sql.includes("SUM(credits)")) {
-          const used = usage.filter(u => u.team_id === binds[0]).reduce((a, u) => a + (u.credits as number), 0);
+          const used = usage
+            .filter(u => (sql.includes("key_id") ? u.key_id === binds[0] : u.team_id === binds[0]))
+            .reduce((a, u) => a + (u.credits as number), 0);
           return { used } as T;
         }
         if (sql.includes("response_json")) return null as T | null;
         return null as T | null;
       },
       async all<T>() {
+        if (sql.includes("FROM users")) {
+          return {
+            results: users
+              .filter(u => u.team_id === binds[0])
+              .map(u => ({
+                ...u,
+                active: String(u.password_hash).startsWith("pbkdf2$") ? 1 : 0,
+              })) as T[],
+          };
+        }
+        if (sql.includes("FROM api_keys")) { return { results: apiKeys as T[] }; }
         if (sql.includes("FROM job_pages")) {
           return { results: pages.filter(p => p.job_id === binds[0]).slice(0, binds[1] as number) as T[] };
         }
@@ -205,16 +276,33 @@ const req = (path: string, body?: unknown, headers: Record<string, string> = {})
 // ---------- happy paths ----------
 
 describe("public", () => {
-  it("GET / returns API blurb (no auth)", async () => {
+  it("GET / returns the dashboard HTML (no auth)", async () => {
     const res = await req("/");
     expect(res.status).toBe(200);
-    const j = (await res.json()) as any;
-    expect(j.message).toMatch(/Firecrawl/);
+    expect(res.headers.get("content-type") ?? "").toMatch(/html/);
+    expect(await res.text()).toMatch(/Firecrawl — Dashboard/);
   });
 
   it("GET /health is public", async () => {
     const res = await req("/health");
     expect(res.status).toBe(200);
+  });
+
+  it("GET /docs is still the JSON catalog", async () => {
+    const res = await req("/docs");
+    expect(res.status).toBe(200);
+    const j = (await res.json()) as any;
+    expect(j.endpoints).toContain("POST /v2/scrape");
+  });
+
+  it("dashboard HTML includes sign-in, invite, and no public signup", () => {
+    const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
+    expect(html).toContain("Sign in");
+    expect(html).toContain("There is no public signup");
+    expect(html).toContain("/dashboard/users/invite");
+    expect(html).toContain("/dashboard/users/reset-password");
+    expect(html).not.toContain("Create account");
+    expect(html).toContain("Firecrawl Console");
   });
 });
 
@@ -384,5 +472,86 @@ describe("summarize (template endpoint)", () => {
   it("failure path: missing url is 400", async () => {
     const res = await req("/v2/summarize", {});
     expect(res.status).toBe(400);
+  });
+});
+
+describe("dashboard auth + keys + rate limits", () => {
+  it("happy path: admin login -> invite -> accept -> key; public signup blocked", async () => {
+    const hash = await hashPassword("password123");
+    await env.DB.prepare(
+      "INSERT INTO users (id, email, password_hash, team_id, role, invite_token_hash, invite_expires_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+    )
+      .bind("admin-1", "admin@b.co", hash, "default", "admin", null, null)
+      .run();
+
+    const signup = await req("/dashboard/auth/signup", { email: "a@b.co", password: "password123" });
+    expect(signup.status).toBe(403);
+
+    const login = await req("/dashboard/auth/login", { email: "admin@b.co", password: "password123" });
+    expect(login.status).toBe(200);
+    const stoken = ((await login.json()) as any).data.token;
+    expect(stoken.startsWith("sess_")).toBe(true);
+
+    const me = await app.fetch(new Request("https://test/dashboard/auth/me", { headers: { authorization: "Bearer " + stoken } }), env, { waitUntil: () => undefined } as unknown as ExecutionContext);
+    expect(me.status).toBe(200);
+    expect(((await me.json()) as any).data.role).toBe("admin");
+
+    const invited = await app.fetch(new Request("https://test/dashboard/users/invite", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + stoken }, body: JSON.stringify({ email: "dev@b.co" }) }), env, { waitUntil: () => undefined } as unknown as ExecutionContext);
+    expect(invited.status).toBe(200);
+    const inviteUrl = ((await invited.json()) as any).data.inviteUrl as string;
+    const inviteToken = inviteUrl.split("/invite/")[1];
+    expect(inviteToken.startsWith("inv_")).toBe(true);
+
+    const pendingLogin = await req("/dashboard/auth/login", { email: "dev@b.co", password: "password123" });
+    expect(pendingLogin.status).toBe(403);
+
+    const accepted = await req("/dashboard/auth/accept-invite", { token: inviteToken, password: "password123" });
+    expect(accepted.status).toBe(200);
+    const memberToken = ((await accepted.json()) as any).data.token as string;
+
+    const memberInvite = await app.fetch(new Request("https://test/dashboard/users/invite", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + memberToken }, body: JSON.stringify({ email: "other@b.co" }) }), env, { waitUntil: () => undefined } as unknown as ExecutionContext);
+    expect(memberInvite.status).toBe(403);
+
+    const reset = await app.fetch(new Request("https://test/dashboard/users/reset-password", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + stoken }, body: JSON.stringify({ email: "dev@b.co" }) }), env, { waitUntil: () => undefined } as unknown as ExecutionContext);
+    expect(reset.status).toBe(200);
+    const resetUrl = ((await reset.json()) as any).data.inviteUrl as string;
+    const resetToken = resetUrl.split("/invite/")[1];
+    const oldPw = await req("/dashboard/auth/login", { email: "dev@b.co", password: "password123" });
+    expect(oldPw.status).toBe(403);
+    const resetAgain = await req("/dashboard/auth/accept-invite", { token: resetToken, password: "newpass123" });
+    expect(resetAgain.status).toBe(200);
+    const missing = await app.fetch(new Request("https://test/dashboard/users/reset-password", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + stoken }, body: JSON.stringify({ email: "nobody@b.co" }) }), env, { waitUntil: () => undefined } as unknown as ExecutionContext);
+    expect(missing.status).toBe(404);
+
+    const created = await app.fetch(new Request("https://test/dashboard/keys", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + stoken }, body: JSON.stringify({ name: "test", rateLimitPerMin: 2 }) }), env, { waitUntil: () => undefined } as unknown as ExecutionContext);
+    expect(created.status).toBe(200);
+    const cbody = ((await created.json()) as any).data;
+    expect(cbody.key.startsWith("fc-")).toBe(true);
+
+    const H = { authorization: "Bearer " + stoken };
+    const list = await app.fetch(new Request("https://test/dashboard/keys", { headers: H }), env, { waitUntil: () => undefined } as unknown as ExecutionContext);
+    expect(list.status).toBe(200);
+    expect((((await list.json()) as any).data as unknown[]).length).toBe(1);
+
+    const bad = await req("/dashboard/auth/login", { email: "admin@b.co", password: "wrongpassword" });
+    expect(bad.status).toBe(401);
+
+    const badInvite = await req("/dashboard/auth/accept-invite", { token: "inv_deadbeef", password: "password123" });
+    expect(badInvite.status).toBe(400);
+
+    const anon = await app.fetch(new Request("https://test/dashboard/keys"), env, { waitUntil: () => undefined } as unknown as ExecutionContext);
+    expect(anon.status).toBe(401);
+
+    const capped = await app.fetch(new Request("https://test/dashboard/keys", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + stoken }, body: JSON.stringify({ name: "capped", monthlyLimit: 1 }) }), env, { waitUntil: () => undefined } as unknown as ExecutionContext);
+    expect(capped.status).toBe(200);
+    const cappedKey = ((await capped.json()) as any).data.key as string;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("<html><body><p>ok</p></body></html>", { status: 200 })),
+    );
+    const first = await req("/v2/scrape", { url: "https://example.com" }, { authorization: "Bearer " + cappedKey });
+    expect(first.status).toBe(200);
+    const second = await req("/v2/scrape", { url: "https://example.com" }, { authorization: "Bearer " + cappedKey });
+    expect(second.status).toBe(402);
   });
 });

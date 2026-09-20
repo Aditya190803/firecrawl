@@ -7,6 +7,23 @@ import { mapHandler } from "./routes/map";
 import { searchHandler } from "./routes/search";
 import { summarizeHandler } from "./routes/summarize";
 import {
+  acceptInviteHandler,
+  createKeyHandler,
+  inviteUserHandler,
+  listKeysHandler,
+  listUsersHandler,
+  loginHandler,
+  logoutHandler,
+  meHandler,
+  recentJobsHandler,
+  requireSession,
+  resetPasswordHandler,
+  revokeKeyHandler,
+  signupHandler,
+  updateKeyHandler,
+  usageHandler,
+} from "./routes/dashboard";
+import {
   agentStartHandler,
   batchStartHandler,
   crawlStartHandler,
@@ -61,10 +78,24 @@ app.onError((e, c) => {
   );
 });
 
+/** Dashboard HTML for GET / (same origin as the API). Falls back if ASSETS isn't bound (tests). */
+const serveDashboard = async (c: { env: Env; req: { url: string; raw: Request }; html: (s: string) => Response }) => {
+  if (c.env.ASSETS) {
+    return c.env.ASSETS.fetch(new Request(new URL("/index.html", c.req.url)));
+  }
+  return c.html(
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"/><title>Firecrawl — Dashboard</title></head><body><p>Dashboard assets are not bound.</p></body></html>`,
+  );
+};
+
 // ---------- public ----------
-app.get("/", c =>
-  c.json({ message: "Firecrawl API (Cloudflare Workers)", docs: "/docs" }),
-);
+app.get("/", c => serveDashboard(c as any));
+app.get("/favicon.svg", async c => {
+  if (c.env.ASSETS) {
+    return c.env.ASSETS.fetch(new Request(new URL("/favicon.svg", c.req.url)));
+  }
+  return c.body(null, 404);
+});
 app.get("/docs", c =>
   c.json({
     message: "Free-tier Workers port of the Firecrawl API.",
@@ -264,6 +295,25 @@ app.post("/v0/search", authMiddleware, c => {
   deprecated(c);
   return searchHandler(c);
 });
+
+// ---------- dashboard (account: signup/login/keys/usage) ----------
+const dash = new Hono<{ Bindings: Env }>();
+dash.post("/auth/signup", signupHandler);
+dash.post("/auth/login", loginHandler);
+dash.post("/auth/logout", logoutHandler);
+dash.post("/auth/accept-invite", acceptInviteHandler);
+dash.use("*", requireSession as any);
+dash.get("/auth/me", meHandler);
+dash.get("/users", listUsersHandler);
+dash.post("/users/invite", inviteUserHandler);
+dash.post("/users/reset-password", resetPasswordHandler);
+dash.get("/keys", listKeysHandler);
+dash.post("/keys", createKeyHandler);
+dash.patch("/keys/:id", updateKeyHandler);
+dash.delete("/keys/:id", revokeKeyHandler);
+dash.get("/usage", usageHandler);
+dash.get("/jobs", recentJobsHandler);
+app.route("/dashboard", dash);
 
 // ---------- misc mounts ----------
 app.all("/exchange/*", notSupported.exchange);

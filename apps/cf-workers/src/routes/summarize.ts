@@ -26,7 +26,7 @@ export async function summarizeHandler(c: C) {
   if (!parsed.success) return c.json(parseZodError(parsed.error), 400);
   const body = parsed.data;
 
-  const credits = await checkCredits((c.env as Env), auth.teamId);
+  const credits = await checkCredits((c.env as Env), auth.teamId, auth.keyMonthlyLimit, auth.keyId);
   if (!credits.ok) {
     return c.json(
       {
@@ -76,7 +76,7 @@ export async function summarizeHandler(c: C) {
     }
   }
 
-  await spendCredits(c.env as Env, auth.teamId, "summarize", 1);
+  await spendCredits(c.env as Env, auth.teamId, "summarize", 1, auth.keyId);
   return c.json({
     success: true,
     data: {

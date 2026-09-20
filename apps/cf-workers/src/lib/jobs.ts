@@ -37,6 +37,7 @@ export interface QueueMessage {
   jobId: string;
   kind: JobKind;
   teamId: string;
+  keyId?: string | null;
   /** For fan-out: one message per page/batch item. */
   url?: string;
   urls?: string[];

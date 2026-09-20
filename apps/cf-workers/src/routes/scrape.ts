@@ -28,7 +28,7 @@ export async function scrapeHandler(c: C) {
   if (!parsed.success) return c.json(parseZodError(parsed.error), 400);
   const body = parsed.data;
 
-  const credits = await checkCredits(c.env, auth.teamId);
+  const credits = await checkCredits(c.env, auth.teamId, auth.keyMonthlyLimit, auth.keyId);
   if (!credits.ok) {
     return c.json(
       { success: false, code: "INSUFFICIENT_CREDITS", error: "Monthly credit limit reached." },
@@ -45,7 +45,7 @@ export async function scrapeHandler(c: C) {
     try {
       const hit = await c.env.CACHE.get(key, "json");
       if (hit) {
-        await spendCredits(c.env, auth.teamId, "scrape", 1);
+        await spendCredits(c.env, auth.teamId, "scrape", 1, auth.keyId);
         return c.json(hit, 200, rateLimitHeaders(rl.remaining));
       }
     } catch {
@@ -85,7 +85,7 @@ export async function scrapeHandler(c: C) {
       }).catch(() => undefined),
     );
   }
-  await spendCredits(c.env, auth.teamId, "scrape", 1);
+  await spendCredits(c.env, auth.teamId, "scrape", 1, auth.keyId);
   return c.json(response, 200, rateLimitHeaders(rl.remaining));
 }
 

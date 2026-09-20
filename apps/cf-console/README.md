@@ -30,9 +30,10 @@ npx wrangler pages project create firecrawl-cf-console --production-branch main
 npm run deploy
 ```
 
-## Sections
+## Pages
 
-Overview (credits, requests, daily curve, jobs) · API keys (per-key rate limit
-and monthly cap) · People (invites and password resets, admin only) · Tester
-(every endpoint, live, with copy-as-curl and auto-polling for crawl and batch) ·
-Docs (request shapes, SDK snippets, error codes).
+Landing (`#/`) · Docs with the playground built in (`#/docs`) · Sign in
+(`#/login`) · Console behind auth: Overview, API keys, People.
+
+The docs and the playground need no account. Only the console routes require a
+session.

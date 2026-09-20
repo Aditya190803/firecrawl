@@ -36,7 +36,14 @@ export async function runSearch(
       `SEARCH_PROVIDER=${provider} needs its API key secret (see wrangler secret put). Falling back is disabled to avoid surprise results.`,
     );
   }
-  return searchDuckDuckGo(query, limit, opts?.lang);
+  // DDG's html endpoint is heavily bot-guarded from datacenter IPs (HTTP 202
+  // challenge). Try it first, then fall back to the lite endpoint.
+  const ddg = await searchDuckDuckGo(query, limit, opts?.lang).catch(() => []);
+  if (ddg.length > 0) return ddg;
+  const lite = await searchDuckDuckGoLite(query, limit).catch(() => []);
+  if (lite.length > 0) return lite;
+  // Mojeek captcha-walls datacenter IPs, so DDG lite is the last free resort.
+  throw new Error("Free search providers are bot-blocking this query right now. Set SEARCH_PROVIDER=serper/tavily/brave with an API key for reliable search.");
 }
 
 async function searchDuckDuckGo(
@@ -70,7 +77,8 @@ async function searchDuckDuckGo(
 
 function extractDdgTarget(href: string): string | null {
   try {
-    const m = href.match(/[?&]uddg=([^&]+)/);
+    const clean = href.replace(/&amp;/g, "&");
+  const m = clean.match(/[?&]uddg=([^&]+)/);
     if (m) return decodeURIComponent(m[1]);
     if (href.startsWith("//")) return `https:${href}`;
     if (href.startsWith("http")) return href;
@@ -78,6 +86,30 @@ function extractDdgTarget(href: string): string | null {
   } catch {
     return null;
   }
+}
+
+async function searchDuckDuckGoLite(query: string, limit: number): Promise<SearchHit[]> {
+  const res = await fetch(
+    `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}`,
+    {
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+      },
+    },
+  );
+  if (!res.ok) throw new Error(`Search provider error: HTTP ${res.status}`);
+  const html = await res.text();
+  const hits: SearchHit[] = [];
+  // lite endpoint: <a rel="nofollow" href="<target>">Title</a>
+  const re = /<a[^>]*rel="nofollow"[^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/gs;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) && hits.length < limit) {
+    const target = extractDdgTarget(m[1]);
+    const title = m[2].replace(/<[^>]+>/g, "").trim();
+    if (target && target.startsWith("http")) hits.push({ url: target, title: title || target });
+  }
+  return hits;
 }
 
 async function searchSerper(key: string, query: string, limit: number) {

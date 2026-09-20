@@ -21,13 +21,13 @@ compatibility_date = "2025-01-01"
 
 [[kv_namespaces]]
 binding = "CACHE"
-id = "REPLACE_WITH_KV_ID"
-preview_id = "REPLACE_WITH_KV_PREVIEW_ID"
+id = "01a95e298cdd426395cf50c0840e55ca"
+preview_id = "4d236cb1105b4b86826d6b3c768d5c2c"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "firecrawl-db"
-database_id = "REPLACE_WITH_D1_ID"
+database_id = "d23f51e8-aba3-4a81-b138-83bf3b7ecfbc"
 migrations_dir = "migrations"
 
 [[queues.producers]]
@@ -45,10 +45,13 @@ dead_letter_queue = "firecrawl-jobs-dlq"
 binding = "WORK_DLQ"
 queue = "firecrawl-jobs-dlq"
 
-[[r2_buckets]]
-binding = "DOCS"
-bucket_name = "firecrawl-docs"
-preview_bucket_name = "firecrawl-docs-preview"
+# R2 is commented out: your account needs R2 enabled once in the dashboard
+# (Cloudflare Dashboard > R2 > Enable). Then create the buckets and
+# uncomment this block. Nothing in the API requires R2 today.
+# [[r2_buckets]]
+# binding = "DOCS"
+# bucket_name = "firecrawl-docs"
+# preview_bucket_name = "firecrawl-docs-preview"
 
 # Workers AI (free: 10k neurons/day). Used ONLY by /extract and /deep-research.
 # If you never call those endpoints, delete this block — nothing else needs it.

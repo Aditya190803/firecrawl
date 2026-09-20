@@ -375,7 +375,7 @@ export async function extractStartHandler(c: C) {
     .join("\n\n---\n\n")
     .slice(0, 24_000);
   const prompt = `Extract structured data from the page content below. Prompt: ${body.prompt ?? "Extract key facts"}. Schema: ${JSON.stringify(body.schema ?? {})}. Return ONLY valid JSON.\n\nCONTENT:\n${combined}`;
-  const ai = await (c.env as any).AI.run("@cf/meta/llama-3.1-8b-instruct", {
+  const ai = await (c.env as any).AI.run("@cf/meta/llama-3.2-1b-instruct", {
     messages: [{ role: "user", content: prompt }],
   });
   const text =
@@ -429,7 +429,7 @@ export async function agentStartHandler(c: C) {
     .filter(Boolean)
     .join("\n\n---\n\n")
     .slice(0, 24_000);
-  const ai = await (c.env as any).AI.run("@cf/meta/llama-3.1-8b-instruct", {
+  const ai = await (c.env as any).AI.run("@cf/meta/llama-3.2-1b-instruct", {
     messages: [{ role: "user", content: `${body.prompt}\n\nCONTENT:\n${combined}` }],
   });
   const answer = (ai as { response?: string }).response ?? JSON.stringify(ai);
@@ -485,7 +485,7 @@ export async function deepResearchStartHandler(c: C) {
     .filter(Boolean)
     .join("\n\n---\n\n")
     .slice(0, 20_000);
-  const ai = await (c.env as any).AI.run("@cf/meta/llama-3.1-8b-instruct", {
+  const ai = await (c.env as any).AI.run("@cf/meta/llama-3.2-1b-instruct", {
     messages: [{ role: "user", content: `Research query: ${body.query}\n\nSOURCES:\n${combined}\n\nWrite a concise research summary with key findings.` }],
   });
   const jobId = newId();

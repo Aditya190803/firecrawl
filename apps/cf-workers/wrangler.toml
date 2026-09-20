@@ -1,0 +1,59 @@
+# Firecrawl on Cloudflare Workers — free-tier only.
+# Every binding below has a generous free tier. Nothing here needs a paid plan.
+# Browser Rendering is deliberately NOT used (it requires a paid Workers plan).
+
+name = "firecrawl-cf"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[vars]
+# Single-user free mode: set ONE master key and skip DB-backed keys entirely.
+# Create one with: pnpm keygen   (then `wrangler secret put API_KEY`)
+# Optional behavior knobs (all have safe defaults, see src/env.ts):
+# MONTHLY_CREDIT_LIMIT = "0"        # 0 = unlimited (default, free self-use)
+# DEFAULT_SCRAPE_TIMEOUT_MS = "30000"
+# MAX_CRAWL_PAGES = "100"
+# MAX_CRAWL_DEPTH = "5"
+# SEARCH_PROVIDER = "duckduckgo"    # duckduckgo | serper | tavily | brave
+# SERPER_API_KEY / TAVILY_API_KEY / BRAVE_API_KEY  -> set via `wrangler secret put`
+# REMOTE_RENDER_URL = ""            # optional: POST {url} -> {html} passthrough to a
+#                                   # self-hosted playwright/fire-engine for JS-heavy pages
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "REPLACE_WITH_KV_ID"
+preview_id = "REPLACE_WITH_KV_PREVIEW_ID"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "firecrawl-db"
+database_id = "REPLACE_WITH_D1_ID"
+migrations_dir = "migrations"
+
+[[queues.producers]]
+binding = "WORK_QUEUE"
+queue = "firecrawl-jobs"
+
+[[queues.consumers]]
+queue = "firecrawl-jobs"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 3
+dead_letter_queue = "firecrawl-jobs-dlq"
+
+[[queues.producers]]
+binding = "WORK_DLQ"
+queue = "firecrawl-jobs-dlq"
+
+[[r2_buckets]]
+binding = "DOCS"
+bucket_name = "firecrawl-docs"
+preview_bucket_name = "firecrawl-docs-preview"
+
+# Workers AI (free: 10k neurons/day). Used ONLY by /extract and /deep-research.
+# If you never call those endpoints, delete this block — nothing else needs it.
+[ai]
+binding = "AI"
+
+[observability.logs]
+enabled = true

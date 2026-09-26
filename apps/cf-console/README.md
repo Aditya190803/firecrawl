@@ -32,8 +32,10 @@ npm run deploy
 
 ## Pages
 
-Landing (`#/`) · Docs with the playground built in (`#/docs`) · Sign in
+Landing (`#/`) · Docs (`#/docs`) · Playground (`#/playground`) · Saved results (`#/playground/<uuid>`) · Sign in
 (`#/login`) · Console behind auth: Overview, API keys, People.
 
 The docs and the playground need no account. Only the console routes require a
 session.
+
+The public keyless playground requires same-origin Worker hosting; the canonical UI is `apps/cf-workers/public/index.html`.

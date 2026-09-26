@@ -417,6 +417,79 @@ tbody tr:hover td{background:var(--alpha-2)}
   .keybar .state{display:none}
 }
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+/* Reference-aligned public surfaces and workspace. */
+:root{--heat-100:#ff4c00;--heat-90:#ff4c00e6;--heat-8:#ff4c0014}
+.announce{padding:12px 0 10px;background:var(--background-base)}
+.announce .container{height:40px;border-radius:12px;background:#ff4c00;color:#fff;font-size:13px}
+.announce b,.announce a{color:#fff}.announce a{text-decoration:underline}
+.nav{backdrop-filter:none;background:var(--background-base)}
+.nav .container{height:100px;padding:0 56px;border-inline:1px solid var(--border-faint)}
+.logo b{font-size:20px;letter-spacing:-.7px}.logo svg{height:28px;width:24px}
+.navlinks{margin-left:auto;gap:10px}.navright{margin-left:24px}
+.navmenu{position:relative}.navmenu summary{cursor:pointer;list-style:none;padding:8px;font-size:14px}
+.navmenu summary:after{content:'⌄';margin-left:8px;color:var(--alpha-40)}
+.navmenu>div{position:absolute;top:40px;left:0;width:220px;padding:8px;background:var(--surface);border:1px solid var(--border-muted);border-radius:12px;box-shadow:0 12px 32px var(--alpha-8)}
+.navmenu a{display:block}.public-grid{background-image:linear-gradient(var(--border-faint) 1px,transparent 1px),linear-gradient(90deg,var(--border-faint) 1px,transparent 1px);background-size:101px 101px;background-position:center top}
+.hero:before{display:none}.hero .container{padding:150px 24px 0}
+.hero h1{max-width:760px;font-size:60px;line-height:64px;letter-spacing:-2.4px;font-weight:500}
+.hero .lede{font-size:16px;line-height:25px;color:var(--accent-black)}
+.hero-copy{position:relative;max-width:710px;margin:auto;background:var(--background-base)}
+.hero-copy:before,.hero-copy:after{content:'✦';position:absolute;top:-66px;font-size:32px;color:var(--heat-100);font-weight:400}
+.hero-copy:before{left:0}.hero-copy:after{right:0}
+.hero-atmosphere{position:absolute;inset:0;width:100%;height:660px;pointer-events:none;z-index:1}.hero-copy{z-index:2}.hero-entry{z-index:3}.browser-demo{z-index:2}.motion-toggle{position:absolute;right:18px;top:18px;z-index:4;border:1px solid var(--border-faint);background:var(--background-base);color:var(--alpha-48);border-radius:7px;padding:6px 9px;font:11px var(--mono);cursor:pointer}.motion-toggle:hover{color:var(--heat-100)}
+.hero .badge{margin-bottom:22px}.hero .pill{background:var(--background-base)}
+.hero .cta{margin-top:24px;gap:12px}.hero .cta .btn{padding:9px 14px;font-size:14px}
+.open-source{background:var(--alpha-3);padding:2px 7px;border-radius:4px}
+.hero-entry{position:relative;max-width:556px;margin:24px auto 72px;border:1px solid var(--border-faint);background:var(--surface);border-radius:22px;padding:10px;box-shadow:0 20px 40px -20px var(--alpha-24);text-align:left}
+.hero-input{display:flex;align-items:center;padding:7px 8px 17px;gap:12px;border-bottom:1px solid var(--border-faint)}
+.hero-input i{font-size:20px;color:var(--alpha-32)}.hero-input input{border:0;background:none;padding:4px 0;box-shadow:none}
+.hero-actions{display:flex;justify-content:space-between;gap:8px;padding-top:10px}
+.segmented{display:inline-flex;align-items:center;gap:2px;padding:3px;border-radius:9px;background:var(--alpha-4)}
+.segmented button{border:0;border-radius:7px;background:transparent;color:var(--alpha-56);font:inherit;font-size:13px;padding:6px 10px;cursor:pointer;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.segmented button:hover{color:var(--accent-black)}.segmented button[aria-pressed=true]{background:var(--surface);color:var(--accent-black);box-shadow:0 1px 4px var(--alpha-12)}
+.segmented button[aria-pressed=true] i{color:var(--heat-100)}
+.browser-demo{position:relative;text-align:left;border:1px solid var(--border-faint);border-radius:20px 20px 0 0;background:var(--background-base);overflow:hidden}
+.browser-toolbar{height:42px;display:flex;align-items:center;gap:7px;padding:0 18px;border-bottom:1px solid var(--border-faint);color:var(--alpha-32);font:11px var(--mono)}
+.browser-toolbar>span{width:9px;height:9px;border:1px solid var(--alpha-12);border-radius:50%}.browser-toolbar>label{margin-left:20px}.browser-toolbar>em{margin-left:auto;font-style:normal}
+.demo-columns{display:grid;grid-template-columns:1fr 1fr;min-height:260px}
+.wire-page{position:relative;overflow:hidden;padding:28px 34px;border-right:1px solid var(--border-faint)}
+.wire-nav{display:flex;gap:18px;align-items:center;margin-bottom:40px;color:var(--alpha-32);font:11px var(--mono)}
+.wire-nav i{height:10px;width:58px;border:1px solid var(--border-faint);border-radius:7px}
+.wire-line{height:13px;background:var(--alpha-4);border-radius:5px;margin:12px 0;max-width:85%}.wire-line.title{height:28px;width:70%}.wire-line.short{width:55%}
+.wire-tag{font:11px var(--mono);color:var(--alpha-32);margin-top:20px}
+.scan-line{position:absolute;left:0;right:0;height:1px;top:0;background:var(--heat-100);box-shadow:0 -15px 40px 8px var(--heat-8);animation:scan 7s ease-in-out infinite}
+@keyframes scan{0%,100%{transform:translateY(0);opacity:0}15%,80%{opacity:.5}90%{transform:translateY(280px);opacity:0}}
+.demo-result{padding:18px 0;display:flex;flex-direction:column;justify-content:center}.demo-result .code{font-size:12px}.demo-status{margin:10px 24px 0 auto;font:11px var(--mono);color:var(--alpha-56)}.demo-status i{color:var(--heat-100)}
+.stack-strip{display:flex;align-items:center;justify-content:center;gap:40px;padding:28px 20px;border-bottom:1px solid var(--border-faint);background:var(--background-base);color:var(--alpha-56)}.stack-strip b{color:var(--accent-black);font-weight:500}.stack-strip span{display:flex;gap:8px;align-items:center}
+.home-section{border-inline:1px solid var(--border-faint)}
+.section-index{padding:30px 40px;border-block:1px solid var(--border-faint);font:11px var(--mono);color:var(--alpha-40);text-transform:uppercase;letter-spacing:.04em}.section-index span{color:var(--heat-100)}
+.feature-heading{position:relative;text-align:center;padding:76px 24px 60px;overflow:hidden}.eyebrow{display:inline-flex;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border-faint);font-size:12px;margin-bottom:18px}.eyebrow:before,.eyebrow:after{content:'//';color:var(--alpha-20)}.eyebrow i{color:var(--heat-100);font-size:17px}
+.feature-heading h2{font-size:46px;line-height:1.15;letter-spacing:-1.6px;margin:0 0 18px}.feature-heading p{font-size:16px;line-height:24px;color:var(--alpha-56);max-width:48ch;margin:auto}
+.dot-art{position:absolute;inset:18px;pointer-events:none;opacity:.5;background:radial-gradient(var(--alpha-16) .65px,transparent .8px);background-size:5px 5px;mask-image:radial-gradient(ellipse at 12% 50%,#000,transparent 32%),radial-gradient(ellipse at 88% 50%,#000,transparent 32%)}
+.feature-picker{display:grid;grid-template-columns:repeat(3,1fr);border-block:1px solid var(--border-faint)}
+.feature-choice{background:none;color:inherit;border:0;border-right:1px solid var(--border-faint);font:inherit;padding:34px 26px;cursor:pointer;text-align:center;transition:background .2s,box-shadow .2s}
+.feature-choice:last-child{border-right:0}.feature-choice[aria-pressed=true]{background:var(--surface);box-shadow:inset 0 -2px var(--heat-100),0 8px 20px -16px var(--alpha-24)}
+.feature-choice>i{display:block;color:var(--heat-100);font-size:24px;margin-bottom:20px}.feature-choice b{font-weight:500;font-size:16px}.feature-choice p{color:var(--alpha-56);max-width:27ch;margin:10px auto 12px;line-height:21px}.feature-choice>span{font-size:12px;color:var(--heat-100)}
+.feature-code{border-bottom:1px solid var(--border-faint)}.feature-code .code{max-height:none;min-height:250px;font-size:13px;line-height:23px}.feature-code .head{padding:12px;margin:0;border-bottom:1px solid var(--border-faint)}.feature-code .head button{padding:9px 22px}.feature-code .head .cp{margin-left:auto}
+.code-split{display:grid;grid-template-columns:1.15fr 1fr}.code-split>div+div{border-left:1px solid var(--border-faint)}.code-caption{font:11px var(--mono);color:var(--alpha-32);padding:12px 22px;border-bottom:1px solid var(--border-faint)}
+.agent-section{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border-faint)}.agent-section>div{padding:48px 40px}.agent-section>div+div{border-left:1px solid var(--border-faint)}.agent-section h2{font-size:32px;line-height:38px;letter-spacing:-1px;margin:12px 0 16px}.agent-section p{color:var(--alpha-56);line-height:23px}.agent-section .code{margin-top:18px}.agent-section .row{margin-top:20px}
+.faq{display:grid;grid-template-columns:1fr 1fr;padding:48px 40px;gap:60px}.faq h2{font-size:32px;line-height:38px;letter-spacing:-1px}.faq p{color:var(--alpha-56);margin-top:12px}.faq details{border-bottom:1px solid var(--border-faint);padding:18px 0}.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px}.faq summary:after{content:'+';color:var(--alpha-40)}.faq details[open] summary:after{content:'−'}.faq details p{font-size:13px;line-height:21px}
+.ready{text-align:center;padding:64px 24px;border-top:1px solid var(--border-faint)}.ready h2{font-size:40px;letter-spacing:-1px;margin-bottom:16px}.ready p{color:var(--alpha-56);margin:0 auto 24px;max-width:48ch}
+.pg-main{min-height:65vh;border-inline:1px solid var(--border-faint);padding-bottom:60px}.pg-title{text-align:center;padding:80px 24px 42px}.pg-title h1{font-size:34px;line-height:42px;letter-spacing:-1px;margin-bottom:10px}.pg-title p{font-size:16px;color:var(--alpha-64)}
+.pg-tabs{display:flex;justify-content:center;padding:28px 16px;border-block:1px solid var(--border-faint)}.pg-tabs .segmented{padding:4px}.pg-tabs button{font-size:14px}
+.pg-work{max-width:720px;margin:28px auto 0;padding:0 24px}.pg-composer{border:1px solid var(--border-faint);background:var(--surface);border-radius:22px;box-shadow:0 18px 32px -22px var(--alpha-20);overflow:hidden}.pg-input-row{padding:22px 20px;display:flex;align-items:center;gap:12px}.pg-input-row>i{font-size:20px;color:var(--alpha-32)}.pg-input-row input{border:0;box-shadow:none;background:none;padding:8px 0;font-size:16px}
+.pg-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px;border-top:1px solid var(--border-faint)}.pg-controls .push{margin-left:auto}.pg-controls .btn{font-size:13px}.pg-options{padding:16px 20px;border-top:1px solid var(--border-faint);display:grid;grid-template-columns:1fr 1fr;gap:12px}.pg-options[hidden],.pg-code[hidden],.pg-result[hidden]{display:none}.pg-options .field{margin:0}.pg-options .wide{grid-column:1/-1}.pg-options label.check{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--alpha-64)}
+.pg-key{margin-top:22px}.pg-key summary{font-size:12px;color:var(--alpha-56);cursor:pointer}.pg-key .field{margin-top:12px}.pg-key input{font-family:var(--mono);font-size:12px}.pg-description{text-align:center;font-size:12px;color:var(--alpha-48);margin:18px 0;line-height:20px}.pg-code,.pg-result{margin-top:24px;border:1px solid var(--border-faint);border-radius:12px;overflow:hidden;background:var(--background-base)}.pg-code .head,.pg-result .head{padding:12px 14px;margin:0;border-bottom:1px solid var(--border-faint);align-items:center}.pg-result .code{max-height:480px}.pg-error{padding:12px;color:var(--accent-crimson);font-size:13px}.recent-runs{margin-top:44px}.recent-runs h2{font-size:15px;margin-bottom:18px}.recent-row{width:100%;display:flex;align-items:center;gap:14px;padding:16px 0;border:0;border-top:1px solid var(--border-faint);background:none;text-align:left;color:inherit;font:inherit;cursor:pointer}.recent-row:hover{background:var(--alpha-2)}.recent-row .target{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.recent-row time{font-size:11px;color:var(--alpha-40)}
+.top{height:64px;background:var(--background-base);backdrop-filter:none}.top>.logo{width:216px}.workspace-name{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;padding:8px 12px;background:var(--alpha-3);border-radius:8px}.layout{grid-template-columns:256px minmax(0,1fr)}.side{top:64px;height:calc(100dvh - 64px);background:var(--background-base);padding:8px;overflow-y:auto}.side a{font-size:13px;padding:11px 12px}.side h4{font:11px var(--sans);margin-top:22px}.main{padding:24px 24px 64px}.main .inner{max-width:1280px;margin:auto}.main .panel,.main .stats{border-radius:8px;background:var(--background-base)}.main .stats .cell{background:var(--background-base)}.main .panel .phd{padding:20px 24px}.main .panel .pb{padding:24px}.main .chart{height:210px}.main .cols{gap:0}.main .cols>.panel{margin:0}.main .pagehead h1{font-size:26px}.main .pagehead .lbl{display:none}.main .pagehead .body-large{font-size:14px}.console-endpoints{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border-faint);border-radius:8px;margin:0 0 24px;overflow:hidden}.console-endpoints a{padding:24px;display:flex;flex-direction:column;gap:12px;border-right:1px solid var(--border-faint)}.console-endpoints a:last-child{border:0}.console-endpoints a:hover{background:var(--alpha-3)}.console-endpoints i{font-size:20px;color:var(--heat-100)}.console-endpoints b{font-weight:500}.console-endpoints p{font-size:13px;color:var(--alpha-56);line-height:21px}.console-section-title{margin:28px 24px 20px}.console-section-title h2{font-size:20px;margin-bottom:8px}.console-section-title p{font-size:13px;color:var(--alpha-56)}.side-bottom{margin-top:auto;padding:18px 10px 10px}.side-bottom .tag{margin-bottom:12px}.side .who{margin-top:0;padding:14px 10px 0}.collapse-control{margin-top:12px;justify-content:flex-start;width:100%}.layout.collapsed{grid-template-columns:64px minmax(0,1fr)}.layout.collapsed .side a{justify-content:center}.layout.collapsed .side .nav-label,.layout.collapsed .side h4,.layout.collapsed .side-bottom,.layout.collapsed .side .mail,.layout.collapsed .side .who .me{display:none}.layout.collapsed .side .who{padding:0}.layout.collapsed .side button{font-size:0}.layout.collapsed .side button i{font-size:18px}.layout.collapsed .side{overflow-x:hidden}.table-scroll{overflow-x:auto}
+@media(max-width:995px){.nav .container{height:72px;padding:0 22px}.navright{margin-left:auto}.hero .container{padding-top:110px}.hero h1{font-size:48px;line-height:54px;letter-spacing:-1.8px}.hero-copy:before,.hero-copy:after{top:-56px}.top>.logo{width:auto}.layout{grid-template-columns:208px minmax(0,1fr)}.side{position:sticky;top:64px;height:calc(100dvh - 64px);flex-direction:column;border-right:1px solid var(--border-faint);overflow-x:hidden}.side .who{margin:0;flex-direction:column;align-items:stretch}.main .cols{grid-template-columns:1fr}.console-endpoints{grid-template-columns:repeat(2,1fr)}.console-endpoints a{border-bottom:1px solid var(--border-faint)}.feature-heading h2{font-size:38px}.agent-section>div{padding:32px 24px}.faq{padding:32px 24px;gap:32px}}
+@media(max-width:640px){.announce .container{width:calc(100% - 24px);font-size:11px;gap:4px}.announce .container>span{display:none}.nav .container{width:100%;height:68px;padding:0 20px}.logo b{font-size:18px}.hero .container{width:100%;padding:90px 16px 0}.hero h1{font-size:39px;line-height:44px;letter-spacing:-1.5px}.hero .lede{font-size:14px;padding:0 14px}.hero-copy:before{left:8px}.hero-copy:after{right:8px}.hero-entry{margin-bottom:40px}.hero-actions .segmented button{padding:6px 7px;font-size:12px;gap:4px}.demo-columns{grid-template-columns:1fr}.wire-page{display:none}.demo-result .code{font-size:11px}.stack-strip{gap:14px;font-size:11px;flex-wrap:wrap}.stack-strip>small{width:100%;text-align:center}.home-section{width:100%}.section-index{padding:24px;font-size:10px}.feature-heading{padding:46px 20px}.feature-heading h2{font-size:32px}.feature-heading p{font-size:14px}.feature-picker{grid-template-columns:1fr}.feature-choice{padding:22px;text-align:left;display:grid;grid-template-columns:28px 1fr;gap:8px 12px;border-bottom:1px solid var(--border-faint);border-right:0}.feature-choice>i{grid-row:1/4;margin:0}.feature-choice p{max-width:none;margin:0;font-size:13px}.feature-choice>span{grid-column:2}.code-split{grid-template-columns:1fr}.code-split>div+div{border-top:1px solid var(--border-faint);border-left:0}.feature-code .head{gap:2px}.feature-code .head button{padding:8px 10px;font-size:12px}.feature-code .head .cp{font-size:0}.feature-code .head .cp i{font-size:16px}.agent-section,.faq{grid-template-columns:1fr}.agent-section>div+div{border-left:0;border-top:1px solid var(--border-faint)}.faq{gap:18px}.pg-main{width:100%}.pg-title{padding:48px 20px 32px}.pg-work{padding:0 14px}.pg-tabs button{padding:7px 10px;font-size:13px}.pg-controls{gap:4px}.pg-controls .btn{padding:8px}.pg-options{grid-template-columns:1fr}.pg-options .wide{grid-column:auto}.recent-row{gap:8px;font-size:12px}.recent-row time{display:none}.top{padding:0 12px;gap:10px}.workspace-name{display:none}.top .right{gap:4px}.layout,.layout.collapsed{display:block}.side,.layout.collapsed .side{position:relative;top:0;height:auto;display:flex;flex-direction:row;overflow-x:auto;padding:8px;border-bottom:1px solid var(--border-faint);gap:4px}.side a{flex-shrink:0;white-space:nowrap;padding:8px}.side h4,.side-bottom,.side .who,.collapse-control{display:none}.layout.collapsed .side .nav-label{display:inline}.side a .nav-label{font-size:12px}.main{padding:20px 14px 44px}.console-endpoints a{padding:18px}.console-section-title{margin:16px 0}.main .panel .phd,.main .panel .pb{padding:16px}.main .stats .cell{padding:16px}.main table{min-width:520px}.main .panel{overflow:auto}.main .pagehead .acts{margin-left:0}.main .pagehead .body-large{font-size:13px}.ready h2{font-size:32px}}
+.main .pagehead{padding:52px 24px 48px;border-bottom:1px solid var(--border-faint);margin-bottom:0}.main .pagehead h1{font-size:40px;line-height:48px;letter-spacing:-1.5px}.main .pagehead .acts{align-self:center}.main>.pg-title{display:none}.main>.pg-tabs{padding:36px 16px}.settings-layout{display:grid;grid-template-columns:240px minmax(0,1fr);border:1px solid var(--border-faint)}.settings-nav{padding:20px 16px;border-right:1px solid var(--border-faint)}.settings-nav a{display:flex;gap:12px;padding:12px;border-radius:8px;color:var(--alpha-64);margin-bottom:4px}.settings-nav a:hover{background:var(--heat-8);color:var(--heat-100)}.setting-row{padding:28px 24px;border-bottom:1px solid var(--border-faint)}.setting-row h2{font-size:16px;margin-bottom:6px}.setting-row p{font-size:13px;color:var(--alpha-56);line-height:21px}.account-values{display:grid;grid-template-columns:100px minmax(0,1fr);gap:16px;margin-top:24px;font-size:13px;overflow-wrap:anywhere}.account-values>span{color:var(--alpha-48)}.account-values b{font-weight:400}.create-key{margin:24px 0}.create-key>summary{width:fit-content;list-style:none;margin-left:auto}.create-key[open]>summary{margin-bottom:16px}.key-entry{padding:28px 24px;border-bottom:1px solid var(--border-faint)}.key-entry:last-child{border:0}.key-entry h3{font-size:14px}.key-entry .tag{margin-left:auto}.masked-key{display:flex;gap:16px;justify-content:space-between;align-items:center;padding:16px;margin:18px 0;background:var(--alpha-3);border-radius:10px}.masked-key code{font-size:13px}.key-limits{display:flex;align-items:center;gap:24px;flex-wrap:wrap}.key-limits label{font-size:12px;color:var(--alpha-48)}.key-limits input{display:block;max-width:120px;margin-top:6px;padding:6px 8px;font:13px var(--mono)}.key-limits>.row{margin-left:auto}.inner> .panel{margin-top:24px}
+@media(max-width:640px){.main .pagehead{padding:24px 0 28px}.main .pagehead h1{font-size:32px;line-height:40px}.settings-layout{grid-template-columns:1fr}.settings-nav{display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--border-faint);padding:8px}.settings-nav a{white-space:nowrap;font-size:12px;padding:8px}.setting-row{padding:24px 16px}.masked-key{align-items:flex-start;flex-direction:column;gap:8px;overflow-wrap:anywhere}.key-entry{padding:20px 16px}.key-limits{gap:16px}.key-limits>.row{margin-left:0}.main>.pg-tabs{padding:24px 0}}
+.navmenu>div{z-index:60;min-width:240px;padding:10px;box-shadow:0 16px 40px var(--alpha-12)}.navmenu summary::-webkit-details-marker{display:none}.navmenu[open] summary{background:var(--alpha-4);border-radius:8px}.navmenu>div a{padding:12px;border-radius:7px}.run-detail{max-width:1112px;margin:32px auto;border:1px solid var(--border-faint)}.run-heading{display:flex;align-items:center;gap:20px;padding:32px 24px;border-bottom:1px solid var(--border-faint)}.run-heading b{margin:auto;text-align:center;font-size:14px;overflow-wrap:anywhere}.run-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--border-faint)}.run-meta>div{padding:24px;border-right:1px solid var(--border-faint);display:flex;flex-direction:column;gap:16px}.run-meta>div:last-child{border:0}.run-meta span{color:var(--alpha-56);font-size:13px}.run-meta b{font-size:13px;font-weight:500}.run-toolbar{display:flex;gap:10px;align-items:center;padding:32px 24px}.run-toolbar>div{margin-right:auto;min-width:0}.run-toolbar h1{font-size:20px;line-height:28px;overflow-wrap:anywhere}.run-toolbar p{margin-top:8px;color:var(--alpha-48);font-size:12px}.run-notice{margin:0 24px 24px;padding:10px 14px;border:1px solid var(--border-faint);border-radius:7px;color:var(--alpha-56);font-size:12px}.run-tabs,.run-footer{padding:14px 24px;border-block:1px solid var(--border-faint);display:flex;align-items:center;justify-content:space-between;gap:12px}.run-body .code{max-height:560px;font-size:13px;line-height:24px}.result-links>div{padding:14px 24px;display:flex;align-items:center;gap:20px;border-bottom:1px solid var(--border-faint);font:13px var(--mono);flex-wrap:wrap}.result-links>div>span{color:var(--alpha-40)}.result-links a{overflow-wrap:anywhere;min-width:0;flex:1}.result-links a:hover{color:var(--heat-100)}.result-links small{color:var(--alpha-48)}.run-footer .mono-small{font-size:10px;overflow-wrap:anywhere}
+.hero-copy{background:transparent}.hero:after{content:'';position:absolute;top:100px;left:50%;transform:translateX(-50%);width:min(710px,100%);height:400px;background:var(--background-base);pointer-events:none;z-index:0}
+@media(max-width:995px){.navlinks{display:flex;gap:0;margin-left:auto}.navlinks>a{display:none}.navright{margin-left:0}.run-heading{padding:24px 16px}.run-meta>div{padding:20px 16px}}
+@media(max-width:640px){.nav .container{gap:6px;padding:0 12px}.navmenu summary{font-size:12px}.navmenu>div{left:auto;right:-80px}.navright{gap:2px}.navright .btn{padding:6px 8px;font-size:12px}.hero:after{top:60px;width:calc(100% - 32px)}.run-heading{flex-wrap:wrap;gap:12px}.run-heading b{order:3;width:100%}.run-heading>button{margin-left:auto}.run-meta{grid-template-columns:1fr 1fr}.run-meta>div:last-child{grid-column:1/-1;border-top:1px solid var(--border-faint)}.run-toolbar{flex-wrap:wrap;padding:24px 16px}.run-toolbar>div{width:100%}.run-notice{margin-inline:16px}.run-tabs,.run-footer{padding:12px 16px}.result-links>div{padding:14px 16px}}
+.run-detail{padding:24px}.run-meta{display:flex;justify-content:flex-start;gap:16px;padding:12px 0;background:none}.run-toolbar{padding:24px 0;gap:16px;flex-wrap:wrap}.mode-tabs{display:flex;gap:4px}.mode-tabs button{font:inherit;border:0;border-radius:6px;background:transparent;color:var(--muted);padding:8px 14px;cursor:pointer}.mode-tabs button[aria-pressed="true"]{background:var(--surface-2,#eee);color:var(--text)}.run-heading h1{overflow-wrap:anywhere}.run-links{padding:20px 0;overflow-wrap:anywhere}.run-links>div{padding:10px 0;border-bottom:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -438,7 +511,7 @@ const TOKEN=()=>localStorage.getItem("fc_token")||"";
 const ROLE=()=>localStorage.getItem("fc_role")||"";
 const EMAIL=()=>localStorage.getItem("fc_email")||"";
 const KEY=()=>localStorage.getItem("fc_lastkey")||"";
-const MARK=`<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="fcT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a3d"/><stop offset="1" stop-color="#e2430f"/></linearGradient><linearGradient id="fcC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd9a8"/><stop offset="1" stop-color="#ff7a2f"/></linearGradient></defs><rect width="32" height="32" rx="7.5" fill="url(#fcT)"/><path fill="#fff" d="M17.3 3.4c.5 3.1-.6 5.2-2.6 7.2-2.6 2.5-4.8 4.6-4.8 8.1a6.1 6.1 0 0 0 12.2.3c0-2.6-1.1-4.2-2-5.7.9.2 1.7.7 2.3 1.4.3-3.9-1.7-8.2-5.1-11.3Z"/><path fill="url(#fcC)" d="M16.1 16.1c.6 1.7 2.4 2.4 2.4 4.3a2.8 2.8 0 0 1-5.6.1c0-1.4.8-2.2 1.5-3 .6-.7 1.2-1.4 1.7-1.4Z"/></svg>`;
+const MARK=`<svg viewBox="0 0 24 32" aria-hidden="true"><path fill="#ff4c00" d="M13 0c2 7-6 9-4 15 1-2 3-3 3-5 5 3 10 9 8 15-1 3-3 5-5 7 1-5-1-7-3-9 0 4-2 5-3 8C1 27 0 21 4 15c0 4 2 5 3 5C3 12 14 10 13 0Z"/></svg>`;
 const logo=()=>`<a class="logo" href="#/">${MARK}<b>Firecrawl</b></a>`;
 const ticks=()=>`<span class="tick"></span>`;
 
@@ -496,7 +569,7 @@ function wireReveal(){
 }
 
 /* ---------------- theme ---------------- */
-function theme(){return localStorage.getItem("fc_theme")||"system";}
+function theme(){return localStorage.getItem("fc_theme")||"light";}
 function applyTheme(){
   const t=theme();
   if(t==="system")document.documentElement.removeAttribute("data-theme");
@@ -593,22 +666,32 @@ const curlFor=(spec,body)=>{
 /* ---------------- routing ---------------- */
 const CONSOLE_PAGES={
   "/overview":{title:"Overview",icon:"ph-chart-line-up",view:vOverview},
+  "/logs":{title:"Activity Logs",icon:"ph-list-bullets",view:vLogs},
+  "/usage":{title:"Usage",icon:"ph-chart-bar",view:vUsage},
   "/keys":{title:"API keys",icon:"ph-key",view:vKeys},
+  "/settings":{title:"Settings",icon:"ph-gear",view:vSettings},
+  "/install":{title:"Agent setup",icon:"ph-robot",view:vInstall},
   "/people":{title:"People",icon:"ph-users-three",view:vPeople,admin:true},
 };
 function parseRoute(){
   const raw=(location.hash||"#/").slice(1);
   const inv=raw.match(/^\/invite\/(.+)$/);
   if(inv)return {name:"/invite",token:decodeURIComponent(inv[1])};
-  const [path,anchor]=raw.split("#");
+  const [route,anchor]=raw.split("#");
+  const [path,query]=route.split("?");
+  const run=path.match(/^\/playground\/([a-f0-9-]{36})$/);
+  if(run)return {name:"/playground-run",runId:run[1]};
   if(path==="/"||path==="")return {name:"/",anchor};
-  return {name:path,anchor};
+  return {name:path,anchor,query:new URLSearchParams(query||"")};
 }
 const setTitle=t=>document.title=t?t+" · Firecrawl":"Firecrawl on Cloudflare Workers";
 
 let renderedRoute=null;
 async function render(){
   const r=parseRoute();
+  disposeBackdrop?.();disposeBackdrop=null;
+  Object.values(pollTimers).forEach(clearInterval);
+  playgroundController?.abort();
   const isConsole=!!CONSOLE_PAGES[r.name];
   if(isConsole&&!TOKEN()){location.hash="#/login";return;}
   if(r.name==="/login"&&TOKEN()){location.hash="#/overview";return;}
@@ -618,6 +701,8 @@ async function render(){
   }
   if(r.name==="/"){setTitle("");vLanding();}
   else if(r.name==="/docs"){setTitle("Docs");vDocs();}
+  else if(r.name==="/playground"){setTitle("Playground");vPlayground(r.query);}
+  else if(r.name==="/playground-run"){setTitle("Playground result");await vPlaygroundRun(r.runId);}
   else if(r.name==="/login"){setTitle("Sign in");vLogin();}
   else if(r.name==="/invite"){setTitle("Set your password");vInvite(r.token);}
   else if(isConsole){
@@ -625,7 +710,8 @@ async function render(){
     setTitle(page.title+" · Console");
     $("#root").innerHTML=consoleChrome(skeleton(5));
     wireConsole();
-    await page.view($("#view"));
+    const view=$("#view");
+    try{await page.view(view);}catch{if(view.isConnected)view.innerHTML=emptyState("ph-warning-circle","Could not load this page","Check your connection, then reload to try again.");}
   }
   else{location.hash="#/";return;}
   renderedRoute=r.name;
@@ -641,15 +727,16 @@ function siteHeader(current){
     ? `<a class="btn btn-secondary btn-sm" href="#/overview"><i class="ph ph-gauge" aria-hidden="true"></i>Console</a>`
     : `<a class="btn btn-primary btn-sm" href="#/login">Sign in</a>`;
   return `<div class="announce"><div class="container">
-      <b>Docs and playground are open.</b><span>No account needed to run a request.</span>
-      <a href="#/docs">Open the docs</a>
+      <b>The web, ready for your AI.</b><span>Search, scrape, and crawl.</span>
+      <a href="#/playground">Try the playground →</a>
     </div></div>
     <header class="nav"><div class="container">
       ${logo()}
       <nav class="navlinks">
+        <details class="navmenu"><summary>Products</summary><div>${["search","scrape","map","crawl"].map(id=>`<a href="#/playground?endpoint=${id}">${EP(id).title}</a>`).join("")}</div></details>
         <a href="#/docs" class="${current==="docs"?"on":""}">Docs</a>
-        <a href="#/docs#playground">Playground</a>
-        <a href="#/docs#errors">Errors</a>
+        <a href="#/playground" class="${current==="playground"?"on":""}">Playground</a>
+        <a href="https://github.com/firecrawl/firecrawl" target="_blank" rel="noreferrer">Open source ↗</a>
       </nav>
       <div class="navright">${themeBtn()}${right}</div>
     </div></header>`;
@@ -664,7 +751,7 @@ function siteFooter(){
         <li><a href="#/docs#scrape">Scrape</a></li><li><a href="#/docs#crawl">Crawl</a></li>
         <li><a href="#/docs#map">Map</a></li><li><a href="#/docs#search">Search</a></li></ul></div>
       <div><h4>Reference</h4><ul>
-        <li><a href="#/docs#auth">Authentication</a></li><li><a href="#/docs#playground">Playground</a></li>
+        <li><a href="#/docs#auth">Authentication</a></li><li><a href="#/playground">Playground</a></li>
         <li><a href="#/docs#errors">Error codes</a></li><li><a href="/docs">Machine catalog</a></li></ul></div>
       <div><h4>Account</h4><ul>
         <li><a href="#/login">Sign in</a></li><li><a href="/health">Health</a></li></ul></div>
@@ -675,6 +762,8 @@ function siteFooter(){
 }
 function wireSite(){
   const t=$("#themeBtn");if(t)t.onclick=cycleTheme;
+  document.onpointerdown=e=>{$$(".navmenu[open]").forEach(menu=>{if(!menu.contains(e.target))menu.open=false;});};
+  document.onkeydown=e=>{if(e.key==="Escape")$$(".navmenu[open]").forEach(menu=>{menu.open=false;menu.querySelector("summary").focus();});};
 }
 async function pulse(){
   const d=$("#pulse"),t=$("#pulsetxt");if(!d)return;
@@ -683,156 +772,253 @@ async function pulse(){
 }
 
 /* ---------------- landing ---------------- */
-const HERO_TABS=["scrape","crawl","map","search"];
-let heroTab="scrape";
-
+const HERO_TABS=["search","scrape","map","crawl"];
+let heroTab="scrape", featureTab="search", snippetLang="Python";
+const actionName=id=>({search:"searching",scrape:"scraping",map:"mapping",crawl:"crawling"})[id];
+const setupPrompt=()=>`Use the Firecrawl-compatible API at ${API()}. Read ${API()}/docs for the supported endpoints and request formats. Ask me for an API key if authentication is needed. Start with /v2/scrape to turn a URL into clean markdown.`;
+const demoData=id=>id==="search"?{web:[{url:"https://example.com",title:"Example Domain",description:"A simple place to start."}]}:id==="map"?{links:[{url:"https://example.com",title:"Home"},{url:"https://example.com/docs",title:"Documentation"}]}:id==="crawl"?{status:"completed",completed:2,total:2,data:[{markdown:"# Getting started"}]}:{url:"https://example.com",markdown:"# Getting Started\nClean web data for your AI.",metadata:{title:"Example Domain"}};
+const modeButtons=(active,attribute="data-mode")=>HERO_TABS.map(id=>`<button type="button" ${attribute}="${id}" aria-pressed="${active===id}"><i class="ph ${EP(id).icon}" aria-hidden="true"></i>${EP(id).title}</button>`).join("");
 function vLanding(){
-  const feature=["search","scrape","crawl","map","extract","summarize"];
   $("#root").innerHTML=`${siteHeader()}
-  <section class="hero"><div class="container rails">
-    <div style="padding:0 24px">
-      <div class="badge rise"><a class="pill" href="#/docs#auth">Free tier only, no paid Cloudflare plan
-        <span class="go"><i class="ph ph-arrow-right" aria-hidden="true"></i></span></a></div>
-      <h1 class="t-h1 rise d1">Power AI agents with <span class="heat">clean web data</span></h1>
-      <p class="body-large lede rise d2">The web data API to search, scrape, and crawl at scale, running on your own Cloudflare Workers.</p>
-      <div class="cta rise d3">
-        <a class="btn btn-primary btn-lg" href="#/docs">Start for free</a>
-        <a class="btn btn-secondary btn-lg" href="#/docs#playground"><i class="ph ph-play-circle" aria-hidden="true"></i>Try the playground</a>
-      </div>
+  <main>
+  <section class="hero public-grid" id="heroScene"><canvas class="hero-atmosphere" id="heroAtmosphere" aria-hidden="true"></canvas><button class="motion-toggle" id="motionToggle" aria-label="Pause background animation" aria-pressed="false">Ⅱ Motion</button><div class="container rails">
+    <div class="hero-copy">
+      <div class="badge"><a class="pill" href="#/docs#auth">Your web data. Your infrastructure. <span class="go">→</span></a></div>
+      <h1>Power AI agents with<br><span class="heat">clean web data</span></h1>
+      <p class="lede">The web data API to search, scrape, and crawl at scale.<br><a class="open-source" href="https://github.com/firecrawl/firecrawl">It's also open source.</a></p>
+      <div class="cta"><a class="btn btn-primary" href="#/playground">Start for free</a><button class="btn btn-secondary" id="agentCopy"><i class="ph ph-copy" aria-hidden="true"></i>Setup for agents</button></div>
     </div>
-    <div class="card ticks play rise d3" id="play">${ticks()}
-      <div class="head">
-        <div class="tabs" id="playTabs"></div>
-        <div class="live"><span class="dot" id="pulse"></span><b id="pulsetxt">checking</b></div>
-      </div>
-      <div class="bar">
-        <label class="sr-only" for="playInput" style="position:absolute;left:-9999px">Request input</label>
-        <input type="text" id="playInput" spellcheck="false"/>
-        <button class="btn btn-primary" id="playRun"><i class="ph ph-play" aria-hidden="true"></i>Run</button>
-      </div>
-      <div class="outwrap" id="playOut"></div>
+    <form class="hero-entry" id="heroForm">
+      <div class="hero-input"><i class="ph ph-globe" aria-hidden="true"></i><input id="heroInput" aria-label="Website URL or search query" placeholder="https://example.com" autocomplete="off" required></div>
+      <div class="hero-actions"><div class="segmented" id="heroModes">${modeButtons(heroTab)}</div><button class="btn btn-primary" aria-label="Open in playground" title="Open in playground"><i class="ph ph-arrow-right" aria-hidden="true"></i></button></div>
+    </form>
+    <div class="browser-demo" aria-label="Illustration of a web page converted to structured data">
+      <div class="browser-toolbar"><span></span><span></span><span></span><label>example.com</label><em>WEB → DATA</em></div>
+      <div class="demo-columns"><div class="wire-page" aria-hidden="true"><div class="wire-nav">Logo <i></i><i></i><i></i></div><div class="wire-tag">H1 Title</div><div class="wire-line title"></div><div class="wire-tag">Description</div><div class="wire-line"></div><div class="wire-line short"></div><div class="scan-line"></div></div>
+      <div class="demo-result"><div class="code-caption">[ .JSON ] <span style="float:right">EXAMPLE OUTPUT</span></div><div id="heroExample">${jsonBlock(demoData(heroTab))}</div><span class="demo-status"><i class="ph-fill ph-check-circle" aria-hidden="true"></i> Clean data, ready for your agent</span></div></div>
     </div>
   </div></section>
-
-  <section class="section" style="padding-top:112px" data-reveal><div class="container rails"><div style="padding:0 24px">
-    <div class="section-head">
-      <div class="seclabel"><span>[ <span class="num">01</span> / 04 ]</span><span>·</span><b>Endpoints</b></div>
-      <h2 class="t-h2">One API for the whole web</h2>
-      <p class="body-large" style="max-width:56ch">Every endpoint answers in the Firecrawl v2 response shape, so an existing client works by changing the base URL and nothing else.</p>
-    </div>
-    <div class="grid3">
-      ${feature.map(id=>{const e=EP(id);return `<article class="cell">
-        <i class="ph ${e.icon}" aria-hidden="true"></i>
-        <h3 class="t-h6">${esc(e.title)}</h3>
-        <p class="body-medium">${esc(e.blurb)}</p>
-        <span class="k">${esc(e.method)} ${esc(e.path)}</span>
-        <a href="#/docs#${e.id}">Learn more</a>
-      </article>`;}).join("")}
-    </div>
-  </div></div></section>
-
-  <section class="section" data-reveal><div class="container rails"><div style="padding:0 24px">
-    <div class="sample">
-      <div>
-        <div class="section-head" style="margin-bottom:20px">
-          <div class="seclabel"><span>[ <span class="num">02</span> / 04 ]</span><span>·</span><b>Quickstart</b></div>
-          <h2 class="t-h2">Start scraping today</h2>
-          <p class="body-large">Point any Firecrawl client at this host, or call it with curl. Keys carry their own rate limit and monthly cap.</p>
-        </div>
-        <div class="row"><a class="btn btn-primary" href="#/docs">Read the docs</a>
-          <a class="btn btn-secondary" href="#/login">Sign in</a></div>
-      </div>
-      <div class="card ticks codecard">${ticks()}
-        <div class="head" id="qtabs"></div>
-        <div id="qcode"></div>
-      </div>
-    </div>
-  </div></div></section>
-
-  <section class="section" data-reveal><div class="container rails"><div style="padding:0 24px">
-    <div class="section-head">
-      <div class="seclabel"><span>[ <span class="num">03</span> / 04 ]</span><span>·</span><b>Limits</b></div>
-      <h2 class="t-h2">Built to stay on the free tier</h2>
-      <p class="body-large" style="max-width:56ch">Workers runs the API, D1 holds keys and jobs, KV caches pages, Queues carries crawls, Workers AI does extraction. Browser rendering is left out because it needs a paid plan.</p>
-    </div>
-    <div class="limits">
-      <div class="cell"><span class="k">rate limit</span><span class="v">Per key, per minute</span><p class="body-medium">Set the ceiling on each key from the console, from 1 to 1000.</p></div>
-      <div class="cell"><span class="k">monthly cap</span><span class="v">Credits per key</span><p class="body-medium">Cap a key at a credit budget for the month, or leave it uncapped.</p></div>
-      <div class="cell"><span class="k">crawl size</span><span class="v">Pages and depth</span><p class="body-medium">Worker config bounds how far a crawl can walk from the start URL.</p></div>
-      <div class="cell"><span class="k">accounts</span><span class="v">Invite only</span><p class="body-medium">Docs and playground stay open. Keys and usage need an invite.</p></div>
-    </div>
-  </div></div></section>
-
-  <section class="section" style="border-bottom:0" data-reveal><div class="container rails"><div style="padding:0 24px">
-    <div class="section-head" style="margin-bottom:24px">
-      <div class="seclabel"><span>[ <span class="num">04</span> / 04 ]</span><span>·</span><b>Console</b></div>
-    </div>
-    <div class="band ticks">${ticks()}
-      <h2 class="t-h4">Keys, usage, and teammates in one place</h2>
-      <p class="body-large" style="max-width:48ch">Issue a key per environment, watch credits by endpoint and by key, and invite the people who need access.</p>
-      <a class="btn btn-primary btn-lg" href="#/login">Sign in</a>
-    </div>
-  </div></div></section>
-  ${siteFooter()}`;
+  <div class="container home-section stack-strip"><small>Built for your<br><b>development workflow</b></small><span><i class="ph ph-code"></i>Python</span><span><i class="ph ph-brackets-curly"></i>Node.js</span><span><i class="ph ph-terminal-window"></i>cURL</span><span><i class="ph ph-cloud"></i>Cloudflare Workers</span></div>
+  <section class="container home-section" id="features">
+    <div class="section-index">[ <span>01</span> / 03 ] · MAIN FEATURES</div>
+    <div class="feature-heading"><div class="dot-art"></div><div class="eyebrow"><i class="ph ph-code-block"></i>Developer First</div><h2>Start <span class="heat" id="featureVerb">searching</span> today</h2><p>The infrastructure layer that helps AI find<br>and read the live web.</p></div>
+    <div class="feature-picker">${["search","scrape","crawl"].map(id=>`<button class="feature-choice" data-feature="${id}" aria-pressed="${featureTab===id}"><i class="ph ${EP(id).icon}" aria-hidden="true"></i><b>${EP(id).title}</b><p>${EP(id).blurb}</p><span>Explore endpoint →</span></button>`).join("")}</div>
+    <div class="feature-code codecard"><div class="head" id="qtabs"></div><div class="code-split"><div id="qcode"></div><div><div class="code-caption">[ .JSON ] · EXAMPLE RESPONSE</div><div id="quickResponse"></div></div></div></div>
+  </section>
+  <section class="container home-section" id="agent-setup"><div class="section-index">[ <span>02</span> / 03 ] · POWER YOUR AGENT</div>
+    <div class="agent-section"><div><div class="eyebrow"><i class="ph ph-plugs-connected"></i>Agent Ready</div><h2>Easily connect with<br>your <span class="heat">AI agents</span></h2><p>Give your agent clean web data with the API and SDKs you already use.</p><div class="row"><button class="btn btn-primary" id="setupCopy"><i class="ph ph-copy"></i>Copy setup prompt</button><a class="btn btn-secondary" href="#/docs">View the docs ↗</a></div></div>
+    <div><h3 class="t-h6">One API. Your own infrastructure.</h3><p style="margin-top:12px">Point your client at this instance and keep your existing Firecrawl workflow.</p>${codeBlock(`Base URL\n${API()}\n\nAuthorization\nBearer fc-YOUR_API_KEY`,false)}<a class="btn btn-secondary" href="#/keys">Manage API keys →</a></div></div>
+  </section>
+  <section class="container home-section"><div class="section-index">[ <span>03</span> / 03 ] · FAQ</div><div class="faq"><div><div class="eyebrow"><i class="ph ph-chat-circle"></i>FAQ</div><h2>Frequently<br>asked <span class="heat">questions</span></h2><p>A few things to know before you start.</p></div><div>
+      ${[["What can I do with this instance?","Search the web, scrape a page to markdown, map a site's URLs, or crawl multiple pages. The docs also cover batch scraping, extraction, and summaries."],["Do I need an account?","The playground works without an API key, with small limits for trying the service. Apps and scripts require an API key. Sign in with an invited account to manage keys and usage."],["Can I use the Firecrawl SDKs?","Yes. Configure your client with this instance's base URL and your API key. The API follows Firecrawl v2 request and response shapes."],["Does this render JavaScript websites?","This instance uses HTTP fetching by default. JavaScript rendering requires a separately configured rendering service. Browser interactions and screenshots are not available here."]].map(([q,a])=>`<details><summary>${q}</summary><p>${a}</p></details>`).join("")}
+    </div></div><div class="ready"><h2>Ready to <span class="heat">build?</span></h2><p>Turn a website into clean, structured data.<br>Try your first request in the playground.</p><a class="btn btn-primary" href="#/playground">Start scraping →</a></div></section>
+  </main>${siteFooter()}`;
   wireSite();
-  pulse();
-  drawPlay();
+  $("#agentCopy").onclick=e=>copy(setupPrompt(),e.currentTarget);
+  $("#setupCopy").onclick=e=>copy(setupPrompt(),e.currentTarget);
+  $$("[data-mode]").forEach(b=>b.onclick=()=>{
+    heroTab=b.dataset.mode;
+    $$("[data-mode]").forEach(t=>t.setAttribute("aria-pressed",t.dataset.mode===heroTab));
+    $("#heroInput").placeholder=heroTab==="search"?"Search the web...":"https://example.com";
+    $("#heroExample").innerHTML=jsonBlock(demoData(heroTab));
+  });
+  $("#heroForm").onsubmit=e=>{e.preventDefault();location.hash=`#/playground?endpoint=${heroTab}&input=${encodeURIComponent($("#heroInput").value.trim())}`;};
+  $$("[data-feature]").forEach(b=>b.onclick=()=>{
+    featureTab=b.dataset.feature;
+    $$("[data-feature]").forEach(t=>t.setAttribute("aria-pressed",t.dataset.feature===featureTab));
+    $("#featureVerb").textContent=actionName(featureTab);drawQuick();
+  });
+  $("#featureVerb").textContent=actionName(featureTab);
   drawQuick();
+  animateBackdrop();
 }
 
-/* hero playground: real calls against the live API */
-function drawPlay(){
-  const tabs=$("#playTabs"),input=$("#playInput"),out=$("#playOut");
-  const defaults={scrape:"https://example.com",crawl:"https://example.com",map:"https://example.com",search:"firecrawl workers"};
-  const paint=()=>{
-    tabs.innerHTML=HERO_TABS.map(id=>`<button type="button" data-t="${id}" aria-pressed="${id===heroTab}">${esc(EP(id).title)}</button>`).join("");
-    $$("button",tabs).forEach(b=>b.onclick=()=>{heroTab=b.dataset.t;paint();});
-    input.value=defaults[heroTab];
-    input.placeholder=heroTab==="search"?"Search query":"https://example.com";
-    out.innerHTML=codeBlock(JSON.stringify(EP(heroTab).example,null,2));
+let disposeBackdrop=null;
+function animateBackdrop(){
+  const canvas=$("#heroAtmosphere"),scene=$("#heroScene"),button=$("#motionToggle");
+  const ctx=canvas.getContext("2d");if(!ctx)return;
+  const reduced=matchMedia("(prefers-reduced-motion: reduce)");
+  let width=0,height=660,frame=0,last=0,time=0,visible=true,paused=reduced.matches;
+  let pointer={x:-1000,y:-1000},target={x:-1000,y:-1000};
+  const glyphs=" .:+xX*";
+  const draw=()=>{
+    ctx.clearRect(0,0,width,height);
+    const dark=getComputedStyle(document.documentElement).getPropertyValue("--background-base").trim()==="#0a0a0a";
+    const neutral=dark?"235,230,226":"65,55,48";
+    pointer.x+=(target.x-pointer.x)*.09;pointer.y+=(target.y-pointer.y)*.09;
+    const step=width<640?10:8,center=width/2;
+    ctx.font="8px monospace";
+    // Coherent waves form a slowly drifting field of ASCII flame-like wisps.
+    for(let y=260;y<height;y+=10){
+      for(let x=Math.max(0,center-580);x<Math.min(width,center+580);x+=step){
+        const nx=(x-center)/480,ny=(height-y)/340;
+        const wave=Math.sin(nx*12+ny*5-time*.42)+Math.sin(nx*23-ny*7+time*.24)*.48+Math.cos(nx*7+ny*13-time*.6)*.3;
+        const envelope=Math.max(0,1-Math.abs(nx)*.72)*Math.max(0,1-ny*.7);
+        const density=Math.max(0,(wave-.12)*envelope);
+        if(density<.08)continue;
+        const distance=Math.hypot(x-pointer.x,y-pointer.y);
+        const hover=paused?0:Math.max(0,1-distance/150);
+        const orange=(y>520&&Math.abs(nx)<.33)||hover>.3;
+        const alpha=Math.min(.55,.035+density*.12+hover*.3);
+        ctx.fillStyle=`rgba(${orange?"255,76,0":neutral},${alpha})`;
+        const char=glyphs[Math.min(6,1+Math.floor(density*3+hover*2))];
+        ctx.fillText(char,x+hover*Math.sin(time+x)*3,y);
+      }
+    }
+    // Sparse pixels breathe in the outer grid, keeping the reading area quiet.
+    for(let i=0;i<24;i++){
+      const side=i%2?-1:1,x=center+side*(390+(i%4)*101),y=48+(i%6)*101;
+      if(x<0||x>width)continue;
+      const a=.025+.04*(1+Math.sin(time*.65+i*1.7))/2;
+      ctx.fillStyle=`rgba(${neutral},${a})`;
+      const size=i%3===0?10:3;ctx.fillRect(x-size/2,y-size/2,size,size);
+    }
   };
-  paint();
-  $("#playRun").onclick=async ev=>{
-    const btn=ev.currentTarget,spec=EP(heroTab),v=input.value.trim();
-    if(!v){toast("Enter a value first.","bad");return;}
-    const body=spec.id==="search"?{query:v,limit:5}
-      :spec.id==="scrape"?{url:v,formats:[{type:"markdown"}]}
-      :spec.id==="map"?{url:v,limit:10}
-      :{url:v,limit:5,maxDepth:2};
-    btn.disabled=true;out.innerHTML=codeBlock("Waiting for the worker...",false);
-    const t0=performance.now();
-    try{
-      const r=await fetch(API()+spec.path,{method:"POST",
-        headers:{"content-type":"application/json",...(KEY()?{authorization:"Bearer "+KEY()}:{})},
-        body:JSON.stringify(body)});
-      const j=await r.json().catch(()=>({}));
-      const ms=Math.round(performance.now()-t0);
-      const md=j&&j.data&&j.data.markdown;
-      out.innerHTML=codeBlock(r.ok&&md
-        ? `// HTTP ${r.status} in ${ms} ms\n\n`+md.slice(0,900)
-        : JSON.stringify(j,null,2));
-      if(r.status===401)toast("Add a key in the playground to run this.","bad");
-    }catch(e){out.innerHTML=codeBlock(e.message,false);}
-    finally{btn.disabled=false;}
-  };
+  const tick=stamp=>{frame=0;if(paused||!visible||document.hidden)return;if(stamp-last>40){time+=.04;last=stamp;draw();}frame=requestAnimationFrame(tick);};
+  const start=()=>{if(!frame&&!paused&&visible&&!document.hidden)frame=requestAnimationFrame(tick);};
+  const resize=()=>{width=scene.clientWidth;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=width*dpr;canvas.height=height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);draw();};
+  const move=e=>{const rect=canvas.getBoundingClientRect();target={x:e.clientX-rect.left,y:e.clientY-rect.top};};
+  const leave=()=>target={x:-1000,y:-1000};
+  const update=()=>{button.setAttribute("aria-pressed",String(paused));button.setAttribute("aria-label",paused?"Play background animation":"Pause background animation");button.textContent=paused?"▷ Motion":"Ⅱ Motion";cancelAnimationFrame(frame);frame=0;draw();start();};
+  const preference=()=>{paused=reduced.matches;update();};
+  const visibility=()=>{if(document.hidden){cancelAnimationFrame(frame);frame=0;}else start();};
+  const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(!visible){cancelAnimationFrame(frame);frame=0;}else start();});observer.observe(canvas);
+  const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(scene);
+  scene.addEventListener("pointermove",move);scene.addEventListener("pointerleave",leave);document.addEventListener("visibilitychange",visibility);reduced.addEventListener("change",preference);
+  button.onclick=()=>{paused=!paused;update();};resize();update();
+  disposeBackdrop=()=>{cancelAnimationFrame(frame);observer.disconnect();resizeObserver.disconnect();scene.removeEventListener("pointermove",move);scene.removeEventListener("pointerleave",leave);document.removeEventListener("visibilitychange",visibility);reduced.removeEventListener("change",preference);};
+}
+function quickSnippet(){
+  const spec=EP(featureTab),input=featureTab==="search"?"firecrawl":"https://example.com";
+  if(snippetLang==="cURL")return curlFor(spec,spec.example);
+  if(snippetLang==="Python")return `# pip install firecrawl-py\nfrom firecrawl import Firecrawl\n\napp = Firecrawl(\n    api_key="fc-YOUR_API_KEY",\n    api_url="${API()}"\n)\n\nresult = app.${featureTab}("${input}"${featureTab==="search"?', limit=5':featureTab==="crawl"?', limit=20':''})`;
+  return `import Firecrawl from "@mendable/firecrawl-js";\n\nconst app = new Firecrawl({\n  apiKey: "fc-YOUR_API_KEY",\n  apiUrl: "${API()}",\n});\n\nconst result = await app.${featureTab}("${input}"${featureTab==="search"?', { limit: 5 }':featureTab==="crawl"?', { limit: 20 }':''});`;
 }
 function drawQuick(){
-  const SNIPPETS={
-    "cURL":()=>`curl -s -X POST ${API()}/v2/scrape \\\n  -H "Authorization: Bearer $FIRECRAWL_KEY" \\\n  -H "content-type: application/json" \\\n  -d '{"url":"https://example.com","formats":[{"type":"markdown"}]}'`,
-    "Node.js":()=>`import Firecrawl from "@mendable/firecrawl-js";\n\nconst firecrawl = new Firecrawl({\n  apiKey: process.env.FIRECRAWL_KEY,\n  apiUrl: "${API()}",\n});\n\nconst doc = await firecrawl.scrape("https://example.com", {\n  formats: ["markdown"],\n});`,
-    "Python":()=>`# pip install firecrawl-py\nfrom firecrawl import FirecrawlApp\n\napp = FirecrawlApp(\n    api_key="fc-YOUR_API_KEY",\n    api_url="${API()}",\n)\n\ndoc = app.scrape_url("https://example.com", formats=["markdown"])`,
+  $("#qtabs").innerHTML=["Python","Node.js","cURL"].map(l=>`<button data-lang="${l}" aria-pressed="${snippetLang===l}">${l}</button>`).join("")+`<button class="cp" id="qcopy" aria-label="Copy code"><i class="ph ph-copy" aria-hidden="true"></i> Copy code</button>`;
+  $$("[data-lang]").forEach(b=>b.onclick=()=>{snippetLang=b.dataset.lang;drawQuick();});
+  $("#qcode").innerHTML=codeBlock(quickSnippet(),false);
+  $("#quickResponse").innerHTML=jsonBlock(demoData(featureTab));
+  $("#qcopy").onclick=e=>copy(quickSnippet(),e.currentTarget);
+}
+
+/* A dedicated playground shares the same endpoint catalog as the docs. */
+let playgroundController=null;
+let recentRuns=[];
+try{recentRuns=JSON.parse(sessionStorage.getItem("fc_recent_runs")||"[]").filter(r=>HERO_TABS.includes(r.endpoint)&&r.runId).slice(0,8);}catch{}
+function vPlayground(query){
+  const id=HERO_TABS.includes(query?.get("endpoint"))?query.get("endpoint"):"scrape";
+  const spec=EP(id);
+  const content=`<div class="pg-title public-grid"><h1>Playground</h1><p>API, Docs and Playground, all in one place</p></div>
+    <div class="pg-tabs"><div class="segmented" aria-label="Endpoint">${modeButtons(id)}</div></div>
+    <div class="pg-work"><form id="pgForm" class="pg-composer">
+      <div class="pg-input-row"><i class="ph ${id==="search"?"ph-magnifying-glass":"ph-globe"}" aria-hidden="true"></i><input id="pgInput" aria-label="${id==="search"?"Search query":"Website URL"}" placeholder="${id==="search"?"Search the web...":"https://example.com"}" value="${esc(query?.get("input")||"")}" autocomplete="off" required></div>
+      <div class="pg-controls"><button class="btn btn-ghost btn-icon" type="button" id="pgOptionsBtn" aria-label="Request options" aria-expanded="false"><i class="ph ph-sliders-horizontal"></i></button>
+        ${id==="scrape"?`<label class="sr-only" for="pgFormat" style="position:absolute;left:-9999px">Output format</label><select id="pgFormat" style="width:auto;font-size:12px;padding:6px 8px;border:0;background:var(--alpha-3)">${["markdown","html","rawHtml","text","links"].map(f=>`<option value="${f}">Format: ${f==="rawHtml"?"Raw HTML":f.charAt(0).toUpperCase()+f.slice(1)}</option>`).join("")}</select>`:`<span class="tag">${id==="search"?"Web":"Website"}</span>`}
+        <button class="btn btn-ghost push" type="button" id="pgCodeBtn" aria-expanded="false"><i class="ph ph-code"></i>Get code</button><button class="btn btn-primary" id="pgRun">Start ${actionName(id)}</button></div>
+      <div class="pg-options" id="pgOptions" hidden>
+        ${id==="scrape"?`<label class="check"><input type="checkbox" id="pgMain" checked>Only main content</label><div class="field"><label for="pgTimeout">Timeout (milliseconds)</label><input id="pgTimeout" type="number" min="1000" max="15000" value="15000"></div>`:`<div class="field"><label for="pgLimit">${id==="search"?"Maximum results":"Maximum pages"}</label><input id="pgLimit" type="number" min="1" max="${id==="map"?20:5}" value="${id==="map"?10:5}"></div>`}
+        ${id==="crawl"?`<div class="field"><label for="pgDepth">Maximum depth</label><input id="pgDepth" type="number" min="0" max="2" value="2"></div>`:""}
+        ${id==="map"?`<div class="field"><label for="pgFilter">Filter URLs</label><input id="pgFilter" type="text" placeholder="e.g. /docs"></div>`:""}
+      </div>
+    </form><p class="pg-description">${esc(spec.blurb)}</p>
+    <p class="body-small" style="text-align:center">No API key needed here. <a class="heat" href="#/keys">Get an API key</a> to use Firecrawl in your app.<br>5 requests/minute · Search: 5 results · Map: 20 URLs · Crawl: 5 pages</p>
+    <section class="pg-code" id="pgCode" hidden><div class="head"><b class="label-small">cURL</b><button class="btn btn-ghost btn-sm" id="pgCopyCode" style="margin-left:auto"><i class="ph ph-copy"></i>Copy code</button></div><div id="pgSnippet"></div></section>
+    <div id="pgError" class="pg-error" role="alert"></div>
+    <section class="pg-result" id="pgResult" hidden aria-live="polite"><div class="head"><b class="label-small">Response</b><span id="meta_${id}"></span><button class="btn btn-ghost btn-sm" id="pgCopyResult" style="margin-left:auto">Copy JSON</button></div><div id="poll_${id}"></div><div id="out_${id}"></div></section>
+    <section class="recent-runs"><h2>Recent Runs <span class="tag">this session</span></h2><div id="pgRecent"></div></section></div>`;
+  if(TOKEN()){
+    $("#root").innerHTML=consoleChrome(content);wireConsole();
+  }else{
+    $("#root").innerHTML=`${siteHeader("playground")}<main class="container pg-main">${content}</main>${siteFooter()}`;wireSite();
+  }
+  const input=$("#pgInput"),form=$("#pgForm"),error=$("#pgError"),result=$("#pgResult"),run=$("#pgRun");
+  let resultData=null;
+  const body=()=>{
+    const value=input.value.trim();
+    const b=id==="search"?{query:value,limit:Number($("#pgLimit").value)}:{url:/^https?:\/\//i.test(value)?value:"https://"+value};
+    if(id==="scrape")Object.assign(b,{formats:[{type:$("#pgFormat").value}],onlyMainContent:$("#pgMain").checked,timeout:Number($("#pgTimeout").value)});
+    else if(id!=="search")b.limit=Number($("#pgLimit").value);
+    if(id==="crawl")b.maxDepth=Number($("#pgDepth").value);
+    if(id==="map"&&$("#pgFilter").value.trim())b.search=$("#pgFilter").value.trim();
+    return b;
   };
-  let lang="cURL";
-  const head=$("#qtabs"),body=$("#qcode");
-  const paint=()=>{
-    head.innerHTML=Object.keys(SNIPPETS).map(k=>
-      `<button type="button" data-l="${esc(k)}" aria-pressed="${k===lang}">${esc(k)}</button>`).join("")
-      +`<button class="cp" type="button" id="qcopy"><i class="ph ph-copy" aria-hidden="true"></i> Copy code</button>`;
-    $$("button[data-l]",head).forEach(b=>b.onclick=()=>{lang=b.dataset.l;paint();});
-    $("#qcopy").onclick=ev=>copy(SNIPPETS[lang](),ev.currentTarget);
-    body.innerHTML=codeBlock(SNIPPETS[lang](),false);
+  const refreshCode=()=>$("#pgSnippet").innerHTML=codeBlock(curlFor(spec,body()),false);
+  form.oninput=refreshCode;
+  $$("[data-mode]").forEach(b=>b.onclick=()=>location.hash=`#/playground?endpoint=${b.dataset.mode}&input=${encodeURIComponent(input.value)}`);
+  const toggle=(button,panel)=>{const btn=$(button),box=$(panel);btn.onclick=()=>{box.hidden=!box.hidden;btn.setAttribute("aria-expanded",!box.hidden);if(!box.hidden)refreshCode();};};
+  toggle("#pgOptionsBtn","#pgOptions");toggle("#pgCodeBtn","#pgCode");
+  $("#pgCopyCode").onclick=e=>copy(curlFor(spec,body()),e.currentTarget);
+  $("#pgCopyResult").onclick=e=>copy($("#out_"+id+" pre").textContent,e.currentTarget);
+  const showRecent=()=>{
+    $("#pgRecent").innerHTML=recentRuns.length?recentRuns.map((r,i)=>`<button class="recent-row" data-recent="${i}"><i class="ph ${EP(r.endpoint).icon}" aria-hidden="true"></i><span class="target">${esc(r.input)}</span><span class="tag">${EP(r.endpoint).title}</span><span class="tag ${r.ok?"ok":"bad"}">${r.ok?"Success":"Failed"}</span><time>${esc(r.time)}</time></button>`).join(""):`<p class="body-small">Your requests will appear here. Start with a URL or a search query above.</p>`;
+    $$("[data-recent]").forEach(b=>b.onclick=()=>{const r=recentRuns[Number(b.dataset.recent)];location.hash=`#/playground/${r.runId}`;});
   };
-  paint();
+  form.onsubmit=async e=>{
+    e.preventDefault();error.textContent="";
+    const request=body();
+    if(id!=="search"){
+      try{const u=new URL(request.url);if(!["http:","https:"].includes(u.protocol)||!u.hostname.includes("."))throw new Error();}
+      catch{error.textContent="Enter a valid website URL, such as https://example.com.";input.focus();return;}
+    }
+    playgroundController?.abort();const controller=new AbortController();playgroundController=controller;
+    clearInterval(pollTimers[id]);$("#poll_"+id).innerHTML="";
+    result.hidden=false;run.disabled=true;run.textContent="Running…";$("#pgCopyResult").disabled=true;
+    $("#out_"+id).innerHTML=skeleton(4);$("#meta_"+id).textContent="Sending request…";
+    const started=performance.now();const timeout=setTimeout(()=>controller.abort(),125000);
+    try{
+      const session=await fetch("/playground/session",{method:"POST",headers:{"content-type":"application/json"},body:"{}",credentials:"same-origin",signal:controller.signal});
+      if(!session.ok){const data=await session.json();throw new Error(data.error||"Could not start the playground session.");}
+      const response=await fetch("/playground/"+id,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(request),credentials:"same-origin",signal:controller.signal});
+      const data=await response.json().catch(()=>({success:false,error:"The server returned a non-JSON response."}));
+      if(controller.signal.aborted||!result.isConnected)return;
+      resultData=data;const ok=response.ok&&data.success!==false;
+      paintResp(id,response.status,Math.round(performance.now()-started),data);
+      if(!ok)error.textContent=typeof data.error==="string"?data.error:data.error?.message||`Request failed (HTTP ${response.status}). Check the request options and try again.`;
+      recentRuns.unshift({endpoint:id,input:input.value,runId:data.runId,ok,time:new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})});recentRuns=recentRuns.filter(r=>r.runId).slice(0,8);try{sessionStorage.setItem("fc_recent_runs",JSON.stringify(recentRuns));}catch{}showRecent();
+      if(data.runId){location.hash=`#/playground/${data.runId}`;return;}
+      if(ok&&data.id&&spec.async)startPoll(spec,data.id,true);
+    }catch(err){
+      if(!result.isConnected)return;
+      error.textContent=err.name==="AbortError"?"The request timed out. Try a smaller request.":(err.message||"Could not reach the API. Check the connection and try again.");
+      $("#meta_"+id).textContent="Request failed";$("#out_"+id).innerHTML=codeBlock(error.textContent,false);
+    }finally{clearTimeout(timeout);if(result.isConnected){run.disabled=false;run.textContent="Start "+actionName(id);$("#pgCopyResult").disabled=!resultData;}}
+  };
+  refreshCode();showRecent();
+}
+
+async function vPlaygroundRun(runId){
+  const content='<div id="runDetail" class="run-detail">'+skeleton(5)+'</div>';
+  $("#root").innerHTML=TOKEN()?consoleChrome(content):`${siteHeader("playground")}<main class="container pg-main">${content}</main>${siteFooter()}`;
+  if(TOKEN())wireConsole();else wireSite();
+  const el=$("#runDetail");let busy=false,tab="content";
+  const load=async()=>{
+    if(busy||!el.isConnected)return;busy=true;
+    try{
+      const response=await fetch(`/playground/runs/${runId}`,{credentials:"same-origin"});
+      const payload=await response.json();if(!el.isConnected)return;
+      if(!response.ok)throw new Error(payload.error||"This result is unavailable or has expired.");
+      const run=payload.data,data=run.result,output=data.data??data;
+      const json=JSON.stringify(data,null,2);
+      const links=output.links||[];
+      el.innerHTML=`<a class="body-small" href="#/playground">← Back to playground</a>
+        <div class="run-heading"><h1>${esc(run.input)}</h1><button class="btn btn-secondary btn-sm" id="runLink">Copy link</button></div>
+        <div class="run-meta"><span class="tag">${esc(EP(run.endpoint).title)}</span><span class="tag">${esc(String(data.status||(run.status<400?"Success":"Failed")))}</span><span>${esc(new Date(run.createdAt).toLocaleString())}</span></div>
+        <p class="body-small">Saved for 24 hours in this browser session. This link is private to this browser.</p>
+        <div class="run-toolbar"><div class="mode-tabs"><button id="runContent">Content</button><button id="runJson">JSON</button></div><div><a class="btn btn-secondary btn-sm" href="#/playground?endpoint=${run.endpoint}&input=${encodeURIComponent(run.input)}">Run again</a> <button class="btn btn-secondary btn-sm" id="runDownload">Download JSON</button></div></div>
+        <div id="runOutput"></div><button class="btn btn-secondary btn-sm" id="runCopy">Copy result</button>`;
+      const paint=()=>{
+        $("#runContent").setAttribute("aria-pressed",tab==="content");$("#runJson").setAttribute("aria-pressed",tab==="json");
+        $("#runOutput").innerHTML=tab==="json"?codeBlock(json,false):output.markdown?codeBlock(output.markdown,false):links.length?`<div class="run-links">${links.map(link=>{const url=typeof link==="string"?link:link.url;return `<div>${/^https?:\/\//.test(url)?`<a href="${esc(url)}" target="_blank" rel="noreferrer">${esc(url)}</a>`:esc(String(url))}</div>`;}).join("")}</div>`:codeBlock(json,false);
+      };
+      $("#runContent").onclick=()=>{tab="content";paint();};$("#runJson").onclick=()=>{tab="json";paint();};paint();
+      $("#runLink").onclick=e=>copy(location.href,e.currentTarget);$("#runCopy").onclick=e=>copy(json,e.currentTarget);
+      $("#runDownload").onclick=()=>{const url=URL.createObjectURL(new Blob([json],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download=`firecrawl-${runId}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+      if(run.endpoint!=="crawl"||!["scraping","queued","processing"].includes(data.status||"queued"))clearInterval(pollTimers.run);
+    }catch(error){if(el.isConnected)el.innerHTML=`<a href="#/playground">← Back to playground</a><h1>Result unavailable</h1><p role="alert">${esc(error.message)}</p>`;clearInterval(pollTimers.run);}
+    finally{busy=false;}
+  };
+  pollTimers.run=setInterval(load,2500);await load();
 }
 
 /* ---------------- docs ---------------- */
@@ -854,7 +1040,7 @@ function vDocs(){
     <nav class="docnav" aria-label="Docs sections">
       <h4>Start</h4>
       <a href="#/docs#auth">Authentication</a>
-      <a href="#/docs#playground">Playground</a>
+      <a href="#/playground">Playground</a>
       ${groups.map(g=>`<h4>${esc(g)}</h4>${EPS.filter(e=>e.group===g).map(e=>
         `<a href="#/docs#${e.id}">${esc(e.title)}</a>`).join("")}`).join("")}
       <h4>Reference</h4>
@@ -974,18 +1160,20 @@ function paintResp(id,status,ms,j){
     +`<span class="mono" style="font-size:12px">${ms?ms+" ms":""} ${size>1024?(size/1024).toFixed(1)+" kB":size+" B"}</span>`;
   $("#out_"+id).innerHTML=jsonBlock(j);
 }
-function startPoll(spec,jobId){
+function startPoll(spec,jobId,publicPlayground=false){
   const box=$("#poll_"+spec.id),t0=Date.now();
   const jobField=$("#f_status_jobId");if(jobField)jobField.value=jobId;
   pollTimers[spec.id]=setInterval(async()=>{
+    if(!box.isConnected){clearInterval(pollTimers[spec.id]);return;}
     box.innerHTML=`<div class="callout info" style="margin:0"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i><span>Polling ${esc(spec.async)}/${esc(jobId)} for ${Math.round((Date.now()-t0)/1000)}s</span></div>`;
     try{
       const key=docKey();
-      const r=await fetch(`${API()}/v2/${spec.async}/${jobId}`,{headers:key?{authorization:"Bearer "+key}:{}});
+      const r=await fetch(publicPlayground?`/playground/crawl/${jobId}`:`${API()}/v2/${spec.async}/${jobId}`,{headers:!publicPlayground&&key?{authorization:"Bearer "+key}:{},credentials:"same-origin"});
       const j=await r.json();
+      if(!box.isConnected)return;
       paintResp(spec.id,r.status,0,j);
-      if(["completed","failed","cancelled"].includes(j.status)){
-        clearInterval(pollTimers[spec.id]);box.innerHTML="";toast("Job "+j.status+".",j.status==="completed"?"ok":"bad");
+      if(!r.ok||["completed","failed","cancelled"].includes(j.status)){
+        clearInterval(pollTimers[spec.id]);box.innerHTML="";toast(r.ok?"Job "+j.status+".":j.error||"Could not read job status.",r.ok&&j.status==="completed"?"ok":"bad");
       }
     }catch{}
     if(Date.now()-t0>120000){
@@ -1062,32 +1250,24 @@ function consoleChrome(inner){
   const here=parseRoute().name;
   const links=Object.entries(CONSOLE_PAGES).filter(([,p])=>!p.admin||ROLE()==="admin");
   const initial=(EMAIL()||"?").slice(0,1).toUpperCase();
-  return `<header class="top">
-    ${logo()}<span class="tag" style="margin-left:-2px">Console</span>
-    <div class="right">
-      <span class="host" title="API base URL"><span class="dot" id="pulse"></span><b id="pulsetxt">${esc(API().replace(/^https?:\/\//,""))}</b></span>
-      ${themeBtn()}
+  return `<header class="top">${logo()}<div class="workspace-name"><span class="av">${esc(initial)}</span>Your workspace</div>
+    <div class="right"><span class="host" title="API base URL"><span class="dot" id="pulse"></span><b id="pulsetxt">${esc(API().replace(/^https?:\/\//,""))}</b></span>${themeBtn()}
       <button class="btn btn-ghost btn-icon" id="baseBtn" title="Change API base URL" aria-label="Change API base URL"><i class="ph ph-sliders-horizontal" aria-hidden="true"></i></button>
-      <a class="btn btn-secondary btn-sm" href="#/"><i class="ph ph-arrow-square-out" aria-hidden="true"></i>Site</a>
-    </div>
-  </header>
-  <div class="layout">
-    <nav class="side" aria-label="Console">
-      <h4>Workspace</h4>
-      ${links.map(([path,p])=>`<a href="#${path}" ${here===path?'aria-current="page"':""}><i class="ph ${p.icon}" aria-hidden="true"></i>${p.title}</a>`).join("")}
-      <h4>Build</h4>
-      <a href="#/docs"><i class="ph ph-book-open-text" aria-hidden="true"></i>Docs</a>
-      <a href="#/docs#playground"><i class="ph ph-play-circle" aria-hidden="true"></i>Playground</a>
-      <div class="who">
-        <div class="me"><span class="av">${esc(initial)}</span><span class="mail">${esc(EMAIL())}</span></div>
-        <button class="btn btn-ghost btn-sm" id="outBtn"><i class="ph ph-sign-out" aria-hidden="true"></i>Log out</button>
-      </div>
-    </nav>
-    <main class="main" id="view">${inner}</main>
-  </div>`;
+      <a class="btn btn-secondary btn-sm" href="#/docs"><i class="ph ph-book-open" aria-hidden="true"></i>Docs</a>
+      <a class="btn btn-primary btn-sm" href="#/playground">Playground</a></div></header>
+    <div class="layout ${localStorage.getItem("fc_collapsed")==="true"?"collapsed":""}" id="consoleLayout">
+    <nav class="side" aria-label="Console"><a href="#/overview" ${here==="/overview"?'aria-current="page"':""} title="Overview"><i class="ph ph-house" aria-hidden="true"></i><span class="nav-label">Overview</span></a>
+    <a href="#/install" title="Add Firecrawl to your agent"><i class="ph ph-robot" aria-hidden="true"></i><span class="nav-label">Add Firecrawl to your agent</span></a>
+    <h4>PLAYGROUND</h4>${HERO_TABS.map(id=>`<a href="#/playground?endpoint=${id}" title="${EP(id).title}" ${here==="/playground"&&(parseRoute().query?.get("endpoint")||"scrape")===id?'aria-current="page"':""}><i class="ph ${EP(id).icon}" aria-hidden="true"></i><span class="nav-label">${{search:"Search the web",scrape:"Scrape a web page",map:"Map a website",crawl:"Crawl entire website"}[id]}</span></a>`).join("")}
+    <h4>ACCOUNT</h4>${links.filter(([path])=>!["/overview","/install"].includes(path)).map(([path,p])=>`<a href="#${path}" title="${p.title}" ${here===path?'aria-current="page"':""}><i class="ph ${p.icon}" aria-hidden="true"></i><span class="nav-label">${p.title}</span></a>`).join("")}
+    <div class="side-bottom"><span class="tag heat">Self-hosted</span><p class="body-small">Your data, on your infrastructure.</p></div>
+    <div class="who"><div class="me"><span class="av">${esc(initial)}</span><span class="mail">${esc(EMAIL())}</span></div><button class="btn btn-ghost btn-sm" id="outBtn" aria-label="Log out"><i class="ph ph-sign-out" aria-hidden="true"></i><span class="nav-label">Log out</span></button></div>
+    <button class="btn btn-secondary collapse-control" id="collapseBtn" aria-label="Toggle sidebar" aria-expanded="${localStorage.getItem("fc_collapsed")!=="true"}"><i class="ph ph-sidebar-simple" aria-hidden="true"></i><span class="nav-label">Collapse</span></button>
+    </nav><main class="main" id="view">${inner}</main></div>`;
 }
 function wireConsole(){
   wireSite();
+  $("#collapseBtn").onclick=()=>{const collapsed=$("#consoleLayout").classList.toggle("collapsed");localStorage.setItem("fc_collapsed",String(collapsed));$("#collapseBtn").setAttribute("aria-expanded",String(!collapsed));};
   $("#outBtn").onclick=async()=>{try{await api("/dashboard/auth/logout",{method:"POST"})}catch{}logout();location.hash="#/";};
   $("#baseBtn").onclick=()=>{
     const v=prompt("API base URL for this browser. Leave blank to use this origin.",localStorage.getItem("fc_base")||"");
@@ -1110,7 +1290,7 @@ const emptyState=(icon,title,body)=>`<div class="empty"><i class="ph ${icon}" ar
 
 function areaChart(daily){
   const pts=(daily||[]).map(d=>d.credits);
-  if(!pts.length)return emptyState("ph-chart-line","No traffic yet","Run a request from the playground and the daily curve shows up here.");
+  if(!pts.length)return emptyState("ph-chart-line","No traffic yet","Run an authenticated API request and the daily curve shows up here.");
   const w=600,h=148,pad=6,max=Math.max(1,...pts);
   const x=i=>pts.length===1?w/2:pad+i*(w-pad*2)/(pts.length-1);
   const y=v=>h-pad-(v/max)*(h-pad*2);
@@ -1141,8 +1321,10 @@ async function vOverview(el){
   el.innerHTML=`<div class="inner">
   ${pageHead("Workspace","Overview","Team "+(d.teamId||"").slice(0,8)+" over the last 30 days.",
     `<a class="btn btn-secondary" href="#/keys"><i class="ph ph-key" aria-hidden="true"></i>API keys</a>
-     <a class="btn btn-primary" href="#/docs#playground"><i class="ph ph-play-circle" aria-hidden="true"></i>Playground</a>`)}
-  <div class="stats">
+     <a class="btn btn-primary" href="#/playground"><i class="ph ph-play-circle" aria-hidden="true"></i>Playground</a>`)}
+  <div class="console-section-title"><h2>Explore our endpoints</h2><p>Power your applications with clean web data.</p></div>
+  <div class="console-endpoints">${HERO_TABS.map(id=>`<a href="#/playground?endpoint=${id}"><i class="ph ${EP(id).icon}" aria-hidden="true"></i><b>${EP(id).title}</b><p>${esc(EP(id).blurb)}</p></a>`).join("")}</div>
+  <div class="stats" id="usage">
     <div class="cell"><div class="k"><i class="ph ph-coins" aria-hidden="true"></i>Credits</div><div class="v">${u.total.credits}</div><div class="s">last 30 days</div></div>
     <div class="cell"><div class="k"><i class="ph ph-arrows-left-right" aria-hidden="true"></i>Requests</div><div class="v">${u.total.requests}</div><div class="s">last 30 days</div></div>
     <div class="cell"><div class="k"><i class="ph ph-calendar-blank" aria-hidden="true"></i>This month</div><div class="v">${d.creditsUsedMonth}</div><div class="s">${d.creditsLimit?"cap "+d.creditsLimit:"no cap set"}</div></div>
@@ -1162,7 +1344,7 @@ async function vOverview(el){
     </tbody></table>`
     :emptyState("ph-key","No key traffic yet","Create a key, then call the API with it to see per-key spend."),
     `<a href="#/keys">Manage keys</a>`,"ph-key")}</div>
-  <div style="margin-top:16px">${panel("Recent jobs",list.length
+  <div style="margin-top:16px" id="jobs">${panel("Recent jobs",list.length
     ?`<table><thead><tr><th>Job</th><th>Kind</th><th>Status</th><th>Progress</th><th>Created</th></tr></thead><tbody>
       ${list.map(x=>`<tr><td class="mono">${esc(x.id.slice(0,8))}</td><td>${esc(x.kind)}</td><td>${jobTag(x.status)}</td>
         <td class="num">${x.completed} / ${x.total}</td><td class="mono muted">${shortDate(x.created_at)}</td></tr>`).join("")}
@@ -1172,14 +1354,67 @@ async function vOverview(el){
   </div>`;
 }
 
+async function vUsage(el,days=30){
+  const {j}=await api("/dashboard/usage?days="+days);
+  if(!el.isConnected)return;
+  if(!j.success){el.innerHTML=emptyState("ph-warning-circle","Usage unavailable",j.error||"Try again in a moment.");return;}
+  const u=j.data;
+  el.innerHTML=`<div class="inner">${pageHead("Account","Usage","Monitor your API usage and track performance.")}
+    ${panel("Recent Usage",`<div class="pb"><div class="toolbar"><div class="segmented">${[1,7,30].map(n=>`<button data-days="${n}" aria-pressed="${days===n}">${n} ${n===1?"day":"days"}</button>`).join("")}</div><span class="body-small" style="margin-left:auto">${u.total.requests} requests</span></div><div style="margin-top:36px">${areaChart(u.daily)}</div></div>`,`${u.total.credits} credits`)}
+    <div class="cols" style="margin-top:24px">${panel("By endpoint",usageTable(u.byEndpoint,"endpoint"))}${panel("By API key",usageTable(u.byKey,"name"))}</div></div>`;
+  $$("[data-days]",el).forEach(b=>b.onclick=()=>{el.innerHTML=skeleton(5);vUsage(el,Number(b.dataset.days)).catch(()=>el.innerHTML=emptyState("ph-warning-circle","Usage unavailable","Reload to try again."));});
+}
+function usageTable(rows,key){
+  return rows.length?`<table><thead><tr><th>${key==="endpoint"?"Endpoint":"API key"}</th><th>Requests</th><th>Credits</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r[key])}</td><td class="num">${r.requests}</td><td class="num">${r.credits}</td></tr>`).join("")}</tbody></table>`:emptyState("ph-chart-bar","No usage yet","Run a request with an API key to see usage here.");
+}
+async function vLogs(el){
+  const {j}=await api("/dashboard/jobs?limit=100");
+  if(!el.isConnected)return;
+  if(!j.success){el.innerHTML=emptyState("ph-warning-circle","Activity unavailable",j.error||"Try again in a moment.");return;}
+  const jobs=j.data;
+  el.innerHTML=`<div class="inner">${pageHead("Account","Activity Logs","Recent crawl and batch jobs for your workspace. Up to 100 latest jobs.")}
+    <div class="panel"><div class="pb toolbar"><input id="jobSearch" type="text" aria-label="Search jobs" placeholder="Search job ID…" style="max-width:260px"><select id="jobKind" aria-label="Filter endpoint" style="width:auto"><option value="">All endpoints</option>${[...new Set(jobs.map(j=>j.kind))].map(k=>`<option value="${esc(k)}">${esc(k)}</option>`).join("")}</select><select id="jobStatus" aria-label="Filter status" style="width:auto"><option value="">All statuses</option>${["queued","active","completed","failed","cancelled"].map(k=>`<option>${k}</option>`).join("")}</select><button class="btn btn-secondary" id="exportJobs" style="margin-left:auto"><i class="ph ph-download-simple"></i>Export CSV</button></div><div id="jobRows" class="table-scroll"></div></div></div>`;
+  let filtered=jobs;
+  const paint=()=>{
+    filtered=jobs.filter(j=>(!$("#jobKind").value||j.kind===$("#jobKind").value)&&(!$("#jobStatus").value||j.status===$("#jobStatus").value)&&j.id.toLowerCase().includes($("#jobSearch").value.toLowerCase()));
+    $("#jobRows").innerHTML=filtered.length?`<table><thead><tr><th>ENDPOINT</th><th>JOB ID</th><th>STATUS</th><th>PROGRESS</th><th>CREDITS</th><th>TIME</th></tr></thead><tbody>${filtered.map(j=>`<tr><td class="mono">/${esc(j.kind)}</td><td class="mono">${esc(j.id.slice(0,16))}</td><td>${jobTag(j.status)}</td><td class="num">${j.completed} / ${j.total}</td><td class="num">${j.credits_cost??0}</td><td class="mono muted">${shortDate(j.created_at)}</td></tr>`).join("")}</tbody></table>`:emptyState("ph-list-bullets","No matching activity",jobs.length?"Try changing your filters.":"Start a crawl or batch scrape to see it here.");
+  };
+  ["#jobSearch","#jobKind","#jobStatus"].forEach(s=>$(s).oninput=paint);
+  $("#exportJobs").onclick=()=>{
+    const fields=["kind","id","status","completed","total","credits_cost","created_at"];
+    const cell=v=>'"'+String(v??"").replace(/^[=+@-]/,"'$&").replace(/"/g,'""')+'"';
+    const csv=[fields.join(","),...filtered.map(j=>fields.map(f=>cell(j[f])).join(","))].join("\r\n");
+    const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="firecrawl-activity.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  };paint();
+}
+async function vSettings(el){
+  const {j}=await api("/dashboard/auth/me");
+  if(!el.isConnected)return;
+  if(!j.success){el.innerHTML=emptyState("ph-warning-circle","Account unavailable",j.error||"Try again in a moment.");return;}
+  el.innerHTML=`<div class="inner">${pageHead("Account","Settings","Manage your account and workspace preferences.")}
+    <div class="settings-layout"><nav class="settings-nav" aria-label="Settings sections"><a href="#/settings#account"><i class="ph ph-user"></i>Account</a><a href="#/settings#appearance"><i class="ph ph-sun"></i>Appearance</a><a href="#/settings#connection"><i class="ph ph-plugs"></i>Connection</a>${ROLE()==="admin"?'<a href="#/people"><i class="ph ph-users"></i>Team members ↗</a>':""}</nav><div>
+    <section class="setting-row" id="account"><h2>Account</h2><p>Your identity and workspace access.</p><div class="account-values"><span>Email</span><b>${esc(j.data.email)}</b><span>Role</span><b>${esc(j.data.role)}</b><span>Team ID</span><code>${esc(j.data.teamId)}</code></div></section>
+    <section class="setting-row" id="appearance"><h2>Appearance</h2><p>Choose how Firecrawl looks on this browser.</p><div class="segmented" style="margin-top:18px">${["light","dark","system"].map(t=>`<button data-theme-choice="${t}" aria-pressed="${theme()===t}">${t.charAt(0).toUpperCase()+t.slice(1)}</button>`).join("")}</div></section>
+    <section class="setting-row" id="connection"><h2>API connection</h2><p>The base URL used by this browser for API requests.</p><div class="code" style="margin-top:16px"><pre>${esc(API())}</pre></div><p>Use the connection control in the header to change the API host.</p></section></div></div></div>`;
+  $$("[data-theme-choice]").forEach(b=>b.onclick=()=>{localStorage.setItem("fc_theme",b.dataset.themeChoice);applyTheme();$$("[data-theme-choice]").forEach(t=>t.setAttribute("aria-pressed",t===b));toast("Appearance saved.");});
+}
+function vInstall(el){
+  el.innerHTML=`<div class="inner">${pageHead("Build","Add Firecrawl to your agent","Connect your AI tools to this instance with a setup prompt or an SDK.")}
+    ${panel("Setup for agents",`<div class="pb"><p class="body-medium">Copy this prompt into your coding agent to get started.</p><div style="margin:20px 0">${codeBlock(setupPrompt(),false)}</div><button class="btn btn-primary" id="installCopy"><i class="ph ph-copy"></i>Copy setup prompt</button></div>`)}
+    <div style="margin-top:24px">${panel("SDK quickstart",`<div class="feature-code codecard"><div class="head" id="qtabs"></div><div class="code-split"><div id="qcode"></div><div><div class="code-caption">EXAMPLE RESPONSE</div><div id="quickResponse"></div></div></div></div>`)}</div></div>`;
+  $("#installCopy").onclick=e=>copy(setupPrompt(),e.currentTarget);drawQuick();
+}
+
 async function vKeys(el){
   const {j}=await api("/dashboard/keys");
-  const keys=j.success?j.data:[];
+  if(!el.isConnected)return;
+  if(!j.success){el.innerHTML=emptyState("ph-warning-circle","Keys unavailable",j.error||"Try again in a moment.");return;}
+  const keys=j.data;
   const active=keys.filter(k=>k.is_active).length;
   el.innerHTML=`<div class="inner">
   ${pageHead("Access","API keys","Every key carries its own rate limit and monthly cap. The secret is shown once, at creation.")}
   <div id="banner"></div>
-  ${panel("Create a key",`<div class="pb">
+  <details class="create-key"><summary class="btn btn-secondary"><i class="ph ph-plus"></i>Create API key</summary>${panel("Create a key",`<div class="pb">
     <div class="cols even">
       <div class="field"><label for="kname">Name</label><input type="text" id="kname" value="default"/>
         <span class="hint">Where the key will be used, for example "staging worker".</span></div>
@@ -1192,21 +1427,10 @@ async function vKeys(el){
     </div>
     <div class="toolbar"><button class="btn btn-primary" id="kcreate"><i class="ph ph-plus" aria-hidden="true"></i>Create key</button>
       <span class="body-small">The secret appears once. Store it before you leave this page.</span></div>
-  </div>`,"","ph-plus-circle")}
+  </div>`,"","ph-plus-circle")}</details>
   <div style="margin-top:16px">${panel(keys.length+" key"+(keys.length===1?"":"s"),keys.length
-    ?`<table><thead><tr><th>Name</th><th>Prefix</th><th>Req / min</th><th>Monthly cap</th><th>Used</th><th>Last used</th><th></th></tr></thead><tbody>
-    ${keys.map(k=>`<tr>
-      <td>${esc(k.name||"")}<span class="sub2 mono">${esc(k.id.slice(0,8))}</span></td>
-      <td class="mono">${esc(k.key_prefix)}</td>
-      <td><input class="cellinput" type="number" data-k="rpm" data-id="${k.id}" value="${k.rate_limit_per_min}" min="1" max="1000" aria-label="Requests per minute"/></td>
-      <td><input class="cellinput" type="number" data-k="cap" data-id="${k.id}" value="${k.monthly_limit}" min="0" aria-label="Monthly cap"/></td>
-      <td class="num">${k.used_month??0}</td>
-      <td class="mono muted">${k.last_used_at?shortDate(k.last_used_at):"never"}</td>
-      <td style="white-space:nowrap;text-align:right">${k.is_active
-        ?`<button class="btn btn-secondary btn-sm" data-act="save" data-id="${k.id}">Save</button> <button class="btn btn-danger btn-sm" data-act="revoke" data-id="${k.id}">Revoke</button>`
-        :`<span class="tag bad">revoked</span>`}</td></tr>`).join("")}
-    </tbody></table>`
-    :emptyState("ph-key","No keys yet","Create your first key above, then paste it into the playground or an SDK client."),
+    ?`<div class="key-list">${keys.map(k=>`<article class="key-entry"><div class="toolbar"><h3>${esc(k.name||"Default")}</h3><span class="tag ${k.is_active?"ok":"bad"}">${k.is_active?"Active":"Revoked"}</span></div><div class="masked-key"><code>${esc(k.key_prefix)}••••••••••••••••••••</code><span class="body-small">Secret shown only at creation</span></div><div class="key-limits"><label>Requests / min<input type="number" data-k="rpm" data-id="${k.id}" value="${k.rate_limit_per_min}" min="1" max="1000" ${k.is_active?"":"disabled"}></label><label>Monthly cap<input type="number" data-k="cap" data-id="${k.id}" value="${k.monthly_limit}" min="0" ${k.is_active?"":"disabled"}></label><span class="body-small">${k.used_month??0} credits used this month<br>Last used ${k.last_used_at?shortDate(k.last_used_at):"never"}</span>${k.is_active?`<div class="row"><button class="btn btn-secondary btn-sm" data-act="save" data-id="${k.id}">Save limits</button><button class="btn btn-danger btn-sm" data-act="revoke" data-id="${k.id}">Revoke</button></div>`:""}</div></article>`).join("")}</div>`
+    :emptyState("ph-key","No keys yet","Use Create API key above, then use it in your app or SDK client."),
     active+" active","ph-key")}</div>
   </div>`;
 
@@ -1223,7 +1447,7 @@ async function vKeys(el){
         slot.innerHTML=`<div class="keyout"><b><i class="ph ph-seal-check heat" aria-hidden="true"></i> Copy this key now. It is not shown again.</b>
           <code>${esc(j.data.key)}</code>
           <div class="toolbar"><button class="btn btn-primary btn-sm" id="copyk"><i class="ph ph-copy" aria-hidden="true"></i>Copy key</button>
-            <a class="btn btn-secondary btn-sm" href="#/docs#playground">Use it in the playground</a></div></div>`;
+            <a class="btn btn-secondary btn-sm" href="#/docs">View API examples</a></div></div>`;
         $("#copyk",el).onclick=ev=>copy(j.data.key,ev.currentTarget);
       }
     }finally{btn.disabled=false;}

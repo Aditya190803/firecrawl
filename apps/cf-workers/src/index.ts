@@ -91,9 +91,9 @@ const serveDashboard = async (c: { env: Env; req: { url: string; raw: Request };
 
 // ---------- public ----------
 app.get("/", c => serveDashboard(c as any));
-app.get("/favicon.svg", async c => {
+app.on("GET", ["/favicon.svg", "/favicon.png", "/favicon.ico"], async c => {
   if (c.env.ASSETS) {
-    return c.env.ASSETS.fetch(new Request(new URL("/favicon.svg", c.req.url)));
+    return c.env.ASSETS.fetch(new Request(new URL(c.req.path, c.req.url)));
   }
   return c.body(null, 404);
 });

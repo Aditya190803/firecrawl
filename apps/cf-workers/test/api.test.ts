@@ -377,7 +377,7 @@ describe("public", () => {
 
   it("console shell ships the redesigned chrome (favicon, themes, endpoints)", () => {
     const html = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
-    expect(html).toContain('<link rel="icon" href="/favicon.svg"');
+    expect(html).toContain('<link rel="icon" href="/favicon.png"');
     expect(html).toContain('data-theme="dark"');
     expect(html).toContain("prefers-color-scheme: dark");
     expect(html).toContain("prefers-reduced-motion: reduce");

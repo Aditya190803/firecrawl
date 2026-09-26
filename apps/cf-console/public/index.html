@@ -11,8 +11,8 @@
 <meta property="og:title" content="Firecrawl on Cloudflare Workers" />
 <meta property="og:description" content="Search, scrape, map, and crawl the web from one API. Docs and playground are open, no account needed." />
 <meta property="og:type" content="website" />
-<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-<link rel="apple-touch-icon" href="/favicon.svg" />
+<link rel="icon" href="/favicon.png" type="image/png" />
+<link rel="apple-touch-icon" href="/favicon.ico" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" />
@@ -490,6 +490,7 @@ tbody tr:hover td{background:var(--alpha-2)}
 @media(max-width:995px){.navlinks{display:flex;gap:0;margin-left:auto}.navlinks>a{display:none}.navright{margin-left:0}.run-heading{padding:24px 16px}.run-meta>div{padding:20px 16px}}
 @media(max-width:640px){.nav .container{gap:6px;padding:0 12px}.navmenu summary{font-size:12px}.navmenu>div{left:auto;right:-80px}.navright{gap:2px}.navright .btn{padding:6px 8px;font-size:12px}.hero:after{top:60px;width:calc(100% - 32px)}.run-heading{flex-wrap:wrap;gap:12px}.run-heading b{order:3;width:100%}.run-heading>button{margin-left:auto}.run-meta{grid-template-columns:1fr 1fr}.run-meta>div:last-child{grid-column:1/-1;border-top:1px solid var(--border-faint)}.run-toolbar{flex-wrap:wrap;padding:24px 16px}.run-toolbar>div{width:100%}.run-notice{margin-inline:16px}.run-tabs,.run-footer{padding:12px 16px}.result-links>div{padding:14px 16px}}
 .run-detail{padding:24px}.run-meta{display:flex;justify-content:flex-start;gap:16px;padding:12px 0;background:none}.run-toolbar{padding:24px 0;gap:16px;flex-wrap:wrap}.mode-tabs{display:flex;gap:4px}.mode-tabs button{font:inherit;border:0;border-radius:6px;background:transparent;color:var(--muted);padding:8px 14px;cursor:pointer}.mode-tabs button[aria-pressed="true"]{background:var(--surface-2,#eee);color:var(--text)}.run-heading h1{overflow-wrap:anywhere}.run-links{padding:20px 0;overflow-wrap:anywhere}.run-links>div{padding:10px 0;border-bottom:1px solid var(--line)}
+.hero-atmosphere{height:760px}.hero:after{display:none}.hero-copy{background:transparent}.hero-copy:before,.hero-copy:after{display:none}.hero.public-grid{background-size:80px 80px}.motion-toggle{z-index:10;top:18px;right:20px;min-height:36px;padding:8px 12px;color:var(--accent-black);border-color:var(--border-muted);font-size:11px;box-shadow:0 2px 6px #00000005}.motion-toggle[aria-pressed="true"]{color:var(--heat-100);border-color:#ff4c0033}.motion-toggle:focus-visible{outline:2px solid var(--heat-100);outline-offset:3px}
 </style>
 </head>
 <body>
@@ -836,57 +837,64 @@ function vLanding(){
 let disposeBackdrop=null;
 function animateBackdrop(){
   const canvas=$("#heroAtmosphere"),scene=$("#heroScene"),button=$("#motionToggle");
-  const ctx=canvas.getContext("2d");if(!ctx)return;
+  const ctx=canvas.getContext("2d");if(!ctx){button.hidden=true;return;}
   const reduced=matchMedia("(prefers-reduced-motion: reduce)");
-  let width=0,height=660,frame=0,last=0,time=0,visible=true,paused=reduced.matches;
-  let pointer={x:-1000,y:-1000},target={x:-1000,y:-1000};
-  const glyphs=" .:+xX*";
+  let choice=null;try{choice=localStorage.getItem("fc_motion");}catch{}
+  let paused=choice?choice==="paused":reduced.matches;
+  let width=0,height=760,frame=0,last=null,time=0,visible=true;
   const draw=()=>{
     ctx.clearRect(0,0,width,height);
-    const dark=getComputedStyle(document.documentElement).getPropertyValue("--background-base").trim()==="#0a0a0a";
-    const neutral=dark?"235,230,226":"65,55,48";
-    pointer.x+=(target.x-pointer.x)*.09;pointer.y+=(target.y-pointer.y)*.09;
-    const step=width<640?10:8,center=width/2;
-    ctx.font="8px monospace";
-    // Coherent waves form a slowly drifting field of ASCII flame-like wisps.
-    for(let y=260;y<height;y+=10){
-      for(let x=Math.max(0,center-580);x<Math.min(width,center+580);x+=step){
-        const nx=(x-center)/480,ny=(height-y)/340;
-        const wave=Math.sin(nx*12+ny*5-time*.42)+Math.sin(nx*23-ny*7+time*.24)*.48+Math.cos(nx*7+ny*13-time*.6)*.3;
-        const envelope=Math.max(0,1-Math.abs(nx)*.72)*Math.max(0,1-ny*.7);
-        const density=Math.max(0,(wave-.12)*envelope);
-        if(density<.08)continue;
-        const distance=Math.hypot(x-pointer.x,y-pointer.y);
-        const hover=paused?0:Math.max(0,1-distance/150);
-        const orange=(y>520&&Math.abs(nx)<.33)||hover>.3;
-        const alpha=Math.min(.55,.035+density*.12+hover*.3);
-        ctx.fillStyle=`rgba(${orange?"255,76,0":neutral},${alpha})`;
-        const char=glyphs[Math.min(6,1+Math.floor(density*3+hover*2))];
-        ctx.fillText(char,x+hover*Math.sin(time+x)*3,y);
+    const dark=document.documentElement.dataset.theme==="dark",center=width/2;
+    // Flow around the reading area, then gather below the composer.
+    const narrow=width<700,spread=narrow?width*.48:Math.min(width*.37,650);
+    for(let side of [-1,1])for(let lane=0;lane<14;lane++){
+      for(let point=0;point<72;point++){
+        const progress=((point/72+time*.035)%1),y=50+progress*650;
+        const bend=Math.sin(progress*Math.PI)*90;
+        const wave=Math.sin(progress*9-time*.8+lane*.18)*14;
+        const x=center+side*(spread+lane*7-bend+wave);
+        const fade=Math.sin(progress*Math.PI);
+        ctx.fillStyle=`rgba(255,76,0,${fade*(dark?.62:.50)*(1-lane/19)})`;
+        const size=point%9===0?2.5:1.4;ctx.fillRect(x,y,size,size);
       }
     }
-    // Sparse pixels breathe in the outer grid, keeping the reading area quiet.
-    for(let i=0;i<24;i++){
-      const side=i%2?-1:1,x=center+side*(390+(i%4)*101),y=48+(i%6)*101;
-      if(x<0||x>width)continue;
-      const a=.025+.04*(1+Math.sin(time*.65+i*1.7))/2;
-      ctx.fillStyle=`rgba(${neutral},${a})`;
-      const size=i%3===0?10:3;ctx.fillRect(x-size/2,y-size/2,size,size);
+    // A halftone flame uses multiple rising lobes instead of random noise.
+    const base=730,scale=narrow?.65:1;
+    for(let y=400;y<height;y+=7)for(let x=center-290*scale;x<center+290*scale;x+=7){
+      const rise=(base-y)/330,xx=(x-center)/scale;
+      const drift=Math.sin(rise*7-time*1.5)*22*rise;
+      const body=Math.exp(-Math.pow((xx-drift)/(155*(1-rise*.65)),2));
+      const tongues=.55+.45*Math.sin(xx*.027+rise*8-time*1.8);
+      const strength=body*Math.max(0,1-rise)*tongues;
+      if(strength<.12)continue;
+      ctx.fillStyle=`rgba(255,76,0,${strength*(dark?.75:.62)})`;
+      const size=1+strength*2;ctx.fillRect(x,y,size,size);
     }
   };
-  const tick=stamp=>{frame=0;if(paused||!visible||document.hidden)return;if(stamp-last>40){time+=.04;last=stamp;draw();}frame=requestAnimationFrame(tick);};
+  const tick=stamp=>{
+    frame=0;if(paused||!visible||document.hidden)return;
+    if(last===null)last=stamp;
+    if(stamp-last>=32){time+=Math.min((stamp-last)/1000,.1);last=stamp;draw();}
+    frame=requestAnimationFrame(tick);
+  };
+  const stop=()=>{cancelAnimationFrame(frame);frame=0;last=null;};
   const start=()=>{if(!frame&&!paused&&visible&&!document.hidden)frame=requestAnimationFrame(tick);};
+  const update=()=>{
+    stop();button.setAttribute("aria-pressed",String(!paused));
+    button.setAttribute("aria-label",paused?"Play background animation":"Pause background animation");
+    button.textContent=paused?"▶ Play animation":"Ⅱ Pause animation";
+    canvas.dataset.motion=paused?"paused":"playing";
+    draw();start();
+  };
   const resize=()=>{width=scene.clientWidth;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=width*dpr;canvas.height=height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);draw();};
-  const move=e=>{const rect=canvas.getBoundingClientRect();target={x:e.clientX-rect.left,y:e.clientY-rect.top};};
-  const leave=()=>target={x:-1000,y:-1000};
-  const update=()=>{button.setAttribute("aria-pressed",String(paused));button.setAttribute("aria-label",paused?"Play background animation":"Pause background animation");button.textContent=paused?"▷ Motion":"Ⅱ Motion";cancelAnimationFrame(frame);frame=0;draw();start();};
-  const preference=()=>{paused=reduced.matches;update();};
-  const visibility=()=>{if(document.hidden){cancelAnimationFrame(frame);frame=0;}else start();};
-  const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(!visible){cancelAnimationFrame(frame);frame=0;}else start();});observer.observe(canvas);
+  const preference=()=>{if(choice===null){paused=reduced.matches;update();}};
+  const visibility=()=>{if(document.hidden)stop();else start();};
+  const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible)start();else stop();});observer.observe(canvas);
   const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(scene);
-  scene.addEventListener("pointermove",move);scene.addEventListener("pointerleave",leave);document.addEventListener("visibilitychange",visibility);reduced.addEventListener("change",preference);
-  button.onclick=()=>{paused=!paused;update();};resize();update();
-  disposeBackdrop=()=>{cancelAnimationFrame(frame);observer.disconnect();resizeObserver.disconnect();scene.removeEventListener("pointermove",move);scene.removeEventListener("pointerleave",leave);document.removeEventListener("visibilitychange",visibility);reduced.removeEventListener("change",preference);};
+  document.addEventListener("visibilitychange",visibility);reduced.addEventListener("change",preference);
+  button.onclick=()=>{paused=!paused;choice=paused?"paused":"playing";try{localStorage.setItem("fc_motion",choice);}catch{}update();};
+  resize();update();
+  disposeBackdrop=()=>{stop();observer.disconnect();resizeObserver.disconnect();document.removeEventListener("visibilitychange",visibility);reduced.removeEventListener("change",preference);button.onclick=null;};
 }
 function quickSnippet(){
   const spec=EP(featureTab),input=featureTab==="search"?"firecrawl":"https://example.com";

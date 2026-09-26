@@ -253,6 +253,7 @@ beforeEach(() => {
   d1 = makeD1();
   kv = makeKV();
   env = {
+    API_KEY: "test-master",
     DB: d1 as unknown as D1Database,
     CACHE: kv as unknown as KVNamespace,
     DOCS: {} as R2Bucket,
@@ -266,12 +267,64 @@ const req = (path: string, body?: unknown, headers: Record<string, string> = {})
   app.fetch(
     new Request(`https://test${path}`, {
       method: body === undefined ? "GET" : "POST",
-      headers: { "content-type": "application/json", ...headers },
+      headers: { "content-type": "application/json", ...(env.API_KEY === "test-master" ? { authorization: "Bearer test-master" } : {}), ...headers },
       body: body === undefined ? undefined : JSON.stringify(body),
     }),
     env,
     { waitUntil: () => undefined } as unknown as ExecutionContext,
   );
+
+describe("public playground", () => {
+  const session = async () => {
+    const r = await req("/playground/session", {}, { origin: "https://test" });
+    expect(r.status).toBe(200);
+    return r.headers.get("set-cookie")!.split(";")[0];
+  };
+  it("scrapes without an API key while the application API remains protected", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("<html><title>Example</title><body><p>Public playground content</p></body></html>")));
+    const cookie = await session();
+    const response = await req("/playground/scrape", { url: "https://example.com" }, { origin: "https://test", cookie, authorization: "" });
+    expect(response.status).toBe(200);
+    const result = await response.json() as any;
+    expect(result.data.markdown).toContain("Public playground content");
+    expect(result.runId).toMatch(/^[a-f0-9-]{36}$/);
+    const saved = await req(`/playground/runs/${result.runId}`, undefined, { origin: "https://test", cookie });
+    expect(saved.status).toBe(200);
+    expect((await saved.json() as any).data.result.data.markdown).toContain("Public playground content");
+    const other = await session();
+    expect((await req(`/playground/runs/${result.runId}`, undefined, { origin: "https://test", cookie: other })).status).toBe(404);
+    expect((await req("/v2/scrape", { url: "https://example.com" }, { authorization: "" })).status).toBe(401);
+  });
+  it("rejects cross-origin use and requests without a playground session", async () => {
+    expect((await req("/playground/session", {}, { origin: "https://other.example" })).status).toBe(403);
+    expect((await req("/playground/scrape", { url: "https://example.com" }, { origin: "https://test" })).status).toBe(401);
+  });
+  it("validates input and bounds public crawl jobs", async () => {
+    const cookie = await session();
+    const headers = { origin: "https://test", cookie, authorization: "" };
+    expect((await req("/playground/scrape", {}, headers)).status).toBe(400);
+    const response = await req("/playground/crawl", { url: "https://example.com", limit: 100, maxDepth: 8, allowExternalLinks: true, webhook: { url: "https://other.example" } }, headers);
+    expect(response.status).toBe(200);
+    const { id } = await response.json() as any;
+    const job = d1.__jobs.get(id)!;
+    const body = JSON.parse(job.request_json as string);
+    expect(body.limit).toBe(5);
+    expect(body.maxDepth).toBe(2);
+    expect(body.allowExternalLinks).toBe(false);
+    expect(body.webhook).toBeUndefined();
+    expect((await req(`/playground/crawl/${id}`, undefined, headers)).status).toBe(200);
+    const other = await session();
+    expect((await req(`/playground/crawl/${id}`, undefined, { ...headers, cookie: other })).status).toBe(404);
+  });
+  it("limits anonymous requests and fails closed when the session store is unavailable", async () => {
+    const cookie = await session();
+    const headers = { origin: "https://test", cookie };
+    for (let i = 0; i < 5; i++) await req("/playground/scrape", {}, headers);
+    expect((await req("/playground/scrape", {}, headers)).status).toBe(429);
+    vi.spyOn(kv, "get").mockRejectedValue(new Error("offline"));
+    expect((await req("/playground/session", {}, { origin: "https://test" })).status).toBe(503);
+  });
+});
 
 // ---------- happy paths ----------
 
@@ -316,8 +369,9 @@ describe("public", () => {
     for (const route of ["/overview", "/keys", "/people"]) {
       expect(html).toContain(`"${route}":`);
     }
-    // the playground lives inside the docs page, not on its own route
-    expect(html).toContain('id="playground"');
+    // Both the public composer and saved-run detail are independently routed.
+    expect(html).toContain('r.name==="/playground"');
+    expect(html).toContain('r.name==="/playground-run"');
     expect(html).not.toContain('"/tester"');
   });
 
@@ -345,6 +399,11 @@ describe("public", () => {
 });
 
 describe("auth", () => {
+  it("requires an API key even when no master key is configured", async () => {
+    delete env.API_KEY;
+    expect((await req("/v2/scrape", { url: "https://example.com" })).status).toBe(401);
+    expect((await req("/v2/scrape", { url: "https://example.com" }, { authorization: "Bearer invalid" })).status).toBe(401);
+  });
   it("failure path: rejects protected route when API_KEY is set and key is wrong", async () => {
     env.API_KEY = "correct-key";
     const res = await req("/v2/scrape", { url: "https://example.com" }, { authorization: "Bearer wrong" });
@@ -450,7 +509,7 @@ describe("async jobs", () => {
   });
 
   it("failure path: unknown job id is 404", async () => {
-    const fakeReq = new Request("https://test/v2/crawl/00000000-0000-0000-0000-000000000000", { method: "GET" });
+    const fakeReq = new Request("https://test/v2/crawl/00000000-0000-0000-0000-000000000000", { method: "GET", headers: { authorization: "Bearer test-master" } });
     const res = await app.fetch(fakeReq, env, { waitUntil: () => undefined } as unknown as ExecutionContext);
     expect(res.status).toBe(404);
   });
@@ -467,8 +526,8 @@ describe("compat shims", () => {
     expect(((await res.json()) as any).success).toBe(true);
   });
 
-  it("v0 keyAuth passes in open mode", async () => {
-    const r = new Request("https://test/v0/keyAuth", { method: "GET" });
+  it("v0 keyAuth passes with a valid key", async () => {
+    const r = new Request("https://test/v0/keyAuth", { method: "GET", headers: { authorization: "Bearer test-master" } });
     const res = await app.fetch(r, env, { waitUntil: () => undefined } as unknown as ExecutionContext);
     expect(res.status).toBe(200);
   });
@@ -480,7 +539,7 @@ describe("compat shims", () => {
   });
 
   it("team credit-usage works", async () => {
-    const r = new Request("https://test/v2/team/credit-usage", { method: "GET" });
+    const r = new Request("https://test/v2/team/credit-usage", { method: "GET", headers: { authorization: "Bearer test-master" } });
     const res = await app.fetch(r, env, { waitUntil: () => undefined } as unknown as ExecutionContext);
     expect(res.status).toBe(200);
     expect(((await res.json()) as any).success).toBe(true);

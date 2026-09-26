@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { Env } from "./env";
 import { authMiddleware } from "./lib/auth";
+import { playground } from "./routes/playground";
 import { scrapeHandler } from "./routes/scrape";
 import { mapHandler } from "./routes/map";
 import { searchHandler } from "./routes/search";
@@ -123,6 +124,7 @@ app.get("/docs", c =>
   }),
 );
 app.get("/health", c => c.json({ status: "ok" }));
+app.route("/playground", playground);
 app.get("/v0/health/liveness", c => c.text("OK"));
 app.get("/v0/health/readiness", c => c.text("OK"));
 

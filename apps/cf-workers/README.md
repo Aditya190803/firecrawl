@@ -59,7 +59,7 @@ Local dev: `npm run dev` (needs the same IDs in `wrangler.toml`; use
 
 | Var | Default | Notes |
 |---|---|---|
-| `API_KEY` (secret) | open mode | master key; when set, all `/v*` routes require it |
+| `API_KEY` (secret) | unset | optional master key; `/v*` routes always require a valid master or D1 API key |
 | `MONTHLY_CREDIT_LIMIT` | `0` (unlimited) | set e.g. `1000` to enforce a cap |
 | `SEARCH_PROVIDER` | `duckduckgo` | or `serper`/`tavily`/`brave` + matching `*_API_KEY` secret |
 | `REMOTE_RENDER_URL` (+`REMOTE_RENDER_SECRET`) | unset | POST `{url}` → `{html,status,url}` passthrough to a self-hosted renderer for JS-heavy pages |
@@ -86,7 +86,7 @@ await app.search("firecrawl");
 
 ```
 fetch → Hono router (src/index.ts)
-  ├─ auth (API_KEY secret or D1 api_keys, else open local mode)
+  ├─ auth (API_KEY secret or D1 api_keys; missing credentials return 401)
   ├─ scrape: fetch(+REMOTE_RENDER_URL) → cheerio readability → KV cache
   ├─ map: sitemap.xml + homepage links
   ├─ search: DuckDuckGo HTML (or keyed provider) + optional scrape-back
@@ -100,3 +100,7 @@ fetch → Hono router (src/index.ts)
 ```bash
 npm test   # 19 vitest tests, all offline with fake D1/KV/Queue bindings
 ```
+
+### Public playground
+
+`#/playground` runs bounded Search, Scrape, Map and Crawl requests without an API key through same-origin `/playground/*` endpoints. An HttpOnly cookie scopes results to the browser; saved run links (`#/playground/<uuid>`) expire after 24 hours. Requests are limited to 5/minute and 50/day per IP, with 5 crawl pages, 20 map URLs and 5 search results. KV limits are approximate under concurrent edge requests and fail closed if KV is unavailable. App and SDK integrations still use authenticated `/v2/*` routes. Serve the UI from this Worker for cookie-based playground access.

@@ -14,8 +14,8 @@ export interface AuthInfo {
 export type AuthCtx = any;
 
 /** Single-user free mode: one master key via `wrangler secret put API_KEY`.
- *  Falls back to D1-backed keys (fc-xxx, sha256-hashed). If neither is
- *  configured, requests are allowed as team "default" (local dev only). */
+ *  Falls back to D1-backed keys (fc-xxx, sha256-hashed). Application routes
+ *  always require a key; the bounded website playground has its own session. */
 export async function authMiddleware(c: any, next: Next) {
   const header =
     c.req.header("authorization") ?? c.req.header("x-api-key") ?? "";
@@ -87,18 +87,6 @@ export async function authMiddleware(c: any, next: Next) {
         401,
       );
     }
-  }
-
-  if (!master) {
-    // No keys configured at all: local dev open mode.
-    c.set("auth", {
-      teamId: "default",
-      keyId: null,
-      keyPrefix: null,
-      rateLimitPerMin: 60,
-      keyMonthlyLimit: 0,
-    } satisfies AuthInfo);
-    return next();
   }
 
   return c.json(

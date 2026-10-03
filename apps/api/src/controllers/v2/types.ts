@@ -1,3 +1,5 @@
+import type { AgentInteropStatus } from "../../lib/agent-interop";
+import type { ThirdPartyDataTermsRequiredError } from "../../lib/exchange";
 import { Request, Response } from "express";
 import { hasCategory } from "../../lib/search-query-builder";
 import { config } from "../../config";
@@ -8,6 +10,7 @@ import { hasReachableHost } from "../../lib/url-utils";
 import { countries } from "../../lib/validate-country";
 import { includesFormat } from "../../lib/format-utils";
 import { addPathRegexIssues, pathPatternsSchema } from "../../lib/crawl-regex";
+import { addStrictSchemaIssue } from "../../lib/openai-strict-schema";
 import {
   ExtractorOptions,
   PageOptions,
@@ -359,7 +362,8 @@ const jsonFormatWithOptions = z.strictObject({
     .transform(val => normalizeSchemaForOpenAI(val))
     .refine(val => validateSchemaForOpenAI(val), {
       message: OPENAI_SCHEMA_ERROR_MESSAGE,
-    }),
+    })
+    .superRefine(addStrictSchemaIssue),
   prompt: z.string().max(10000).optional(),
   checkPromptInjection: z.boolean().optional(),
 });
@@ -394,7 +398,8 @@ const changeTrackingFormatWithOptions = z.strictObject({
     .transform(val => normalizeSchemaForOpenAI(val))
     .refine(val => validateSchemaForOpenAI(val), {
       message: OPENAI_SCHEMA_ERROR_MESSAGE,
-    }),
+    })
+    .superRefine(addStrictSchemaIssue),
   modes: z.enum(["json", "git-diff"]).array().optional().prefault([]),
   tag: z.string().or(z.null()).prefault(null),
 });
@@ -458,6 +463,15 @@ const queryFormatWithOptions = z.strictObject({
 
 type QueryFormatWithOptions = z.output<typeof queryFormatWithOptions>;
 
+// Which engine answers branding decisions: "fast" (Jev), "standard" (the
+// LLM) or "auto" (the LLM for now). Internal for now: honored only for teams
+// listed in BRANDING_JEV_TEAM_IDS and ignored for everyone else
+// (lib/branding/jev.ts).
+const brandingFormatWithOptions = z.strictObject({
+  type: z.literal("branding"),
+  mode: z.enum(["auto", "fast", "standard"]).optional(),
+});
+
 export type FormatObject =
   | { type: "markdown" }
   | { type: "html" }
@@ -474,7 +488,7 @@ export type FormatObject =
   | QuestionFormatWithOptions
   | HighlightsFormatWithOptions
   | QueryFormatWithOptions
-  | { type: "branding" }
+  | z.output<typeof brandingFormatWithOptions>
   | { type: "product" }
   | { type: "menu" }
   | { type: "audio" }
@@ -767,7 +781,7 @@ const scrapeOptionFields = z.strictObject({
           changeTrackingFormatWithOptions,
           screenshotFormatWithOptions,
           attributesFormatWithOptions,
-          z.strictObject({ type: z.literal("branding") }),
+          brandingFormatWithOptions,
           z.strictObject({ type: z.literal("product") }),
           z.strictObject({ type: z.literal("menu") }),
           questionFormatWithOptions,
@@ -1004,7 +1018,8 @@ const extractOptions = z
       .transform(val => normalizeSchemaForOpenAI(val))
       .refine(val => validateSchemaForOpenAI(val), {
         message: OPENAI_SCHEMA_ERROR_MESSAGE,
-      }),
+      })
+      .superRefine(addStrictSchemaIssue),
     limit: z.int().positive().finite().optional(),
     ignoreSitemap: z.boolean().prefault(false),
     includeSubdomains: z.boolean().prefault(true),
@@ -1797,6 +1812,11 @@ export type AgentStatusResponse =
       status: "processing" | "completed" | "failed";
       error?: string;
       data?: any;
+      /** Best-effort JSON on a failed run; `data` remains completed-only. */
+      partial?: unknown;
+      /** Only present when the caller supplied a JSON Schema. */
+      partialSchemaValid?: boolean;
+      stopReason?: "credit_limit_reached";
       model?: "spark-1-pro" | "spark-1-mini" | "spark-2";
       effort?: "low" | "medium" | "high";
       expiresAt: string;
@@ -1831,6 +1851,9 @@ type AgentThreadRun = {
   message: string | null;
   // Only present when the request asked for includeData.
   data?: unknown;
+  partial?: unknown;
+  partialSchemaValid?: boolean;
+  stopReason?: "credit_limit_reached";
   suggestions?: AgentSuggestion[] | null;
   pendingApproval?: AgentPendingApproval | null;
   exchange?: AgentExchangeSummary | null;
@@ -2008,6 +2031,7 @@ export type CrawlErrorsResponse =
         url: string;
         code?: ErrorCodes;
         error: string;
+        requiresAction?: ThirdPartyDataTermsRequiredError["requiresAction"];
       }[];
       robotsBlocked: string[];
     };
@@ -2015,6 +2039,9 @@ export type CrawlErrorsResponse =
 type AuthObject = {
   team_id: string;
   org_id?: string | null;
+  // Set only by authMiddleware from the raw request; controllers may re-parse
+  // the body and drop `__agentInterop`, so read this instead.
+  agentInterop?: AgentInteropStatus;
 };
 
 type Account = {
@@ -2061,6 +2088,8 @@ export type TeamFlags = {
   bypassCreditChecks?: boolean;
   debugBranding?: boolean;
   maxBrowserSessions?: number;
+  // grants the privileged large-PDF size cap (PDF_BY_REFERENCE_MAX_BYTES_PRIVILEGED)
+  largePdfs?: boolean;
   researchBeta?: boolean;
   menuBeta?: boolean;
   enrichBeta?: boolean;
@@ -2473,6 +2502,8 @@ const searchDomainSchema = z
 export const searchRequestSchema = z
   .strictObject({
     query: z.string(),
+    objective: z.string().trim().min(1).max(5000).optional().catch(undefined),
+    clientModel: z.string().trim().min(1).max(128).optional().catch(undefined),
     limit: z.int().positive().finite().max(100).optional().prefault(10),
     tbs: z.string().optional(),
     filter: z.string().optional(),
